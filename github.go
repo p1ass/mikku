@@ -10,29 +10,36 @@ import (
 	"golang.org/x/oauth2"
 )
 
+//go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
+
 // GitHubClient is a interface for calling GitHub API
 type GitHubClient interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 }
 
-// GitHubClientImpl is client implementing GitHubClient
-type GitHubClientImpl struct {
+// Client is client implementing GitHubClient
+type Client struct {
 	owner string
-	*github.RepositoriesService
+	GitHubClient
 }
 
-// NewGitHubClientImpl returns a pointer of GitHubClientImpl
+// NewClient returns a pointer of Client
 // If accessToken is empty, you can't make any changes to the repository
-func NewGitHubClientImpl(owner, accessToken string) *GitHubClientImpl {
+func NewClient(owner, accessToken string) *Client {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: accessToken,
 	})
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
-	return &GitHubClientImpl{
-		owner:               owner,
-		RepositoriesService: client.Repositories,
+
+	return newClient(owner, client.Repositories)
+}
+
+func newClient(owner string, githubCli GitHubClient) *Client {
+	return &Client{
+		owner:        owner,
+		GitHubClient: githubCli,
 	}
 }
 
@@ -42,7 +49,7 @@ const releaseTemplate = `
 `
 
 // CreateReleaseByTagName creates GitHub release with a given tag
-func (cli *GitHubClientImpl) CreateReleaseByTagName(repo, tagName string) (*github.RepositoryRelease, error) {
+func (cli *Client) CreateReleaseByTagName(repo, tagName string) (*github.RepositoryRelease, error) {
 	body, err := generateReleaseBody()
 	if err != nil {
 		return nil, fmt.Errorf("generate release body: %w", err)
