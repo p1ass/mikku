@@ -8,7 +8,7 @@
 
 You need an OAuth2 access token. Generate [personal API token](https://github.com/settings/tokens) with *repo* scope.
 
-## Set environment variable
+### Set environment variable
 
 - `GITHUB_ACCESS_TOKEN`: your OAuth2 access token.
 - `MIKKU_GITHUB_OWNER`: repository owner or org name. 
@@ -118,8 +118,7 @@ $ REPO=sample-repository
 
 # The most simple case
 # When the latest tag name is `v1.0.1`,
-# replace p1ass/sample-repository:v1.0.0 existing in manifest-repository
-# to p1ass/sample-repository:v1.0.1.
+# replace p1ass/sample-repository:v1.0.0 existing in manifest-repository to p1ass/sample-repository:v1.0.1.
 $ mikku pr ${REPO}
 
 # When the manifest file exists in the same repository
