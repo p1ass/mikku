@@ -10,12 +10,12 @@ You need an OAuth2 access token. Generate [personal API token](https://github.co
 
 ### Set environment variable
 
-- `GITHUB_ACCESS_TOKEN`: your OAuth2 access token.
+- `MIKKU_GITHUB_ACCESS_TOKEN`: your OAuth2 access token.
 - `MIKKU_GITHUB_OWNER`: repository owner or org name. 
     - Ex. `p1ass` when `p1ass/mikku`
 
 ```bash
-$ export GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
+$ export MIKKU_GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
 $ export MIKKU_GITHUB_OWNER=[GITHUB_OWNER_NAME]
 ```
 
@@ -108,7 +108,7 @@ spec:
 ##### Examples
 
 ```bash
-$ export GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
+$ export MIKKU_GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
 $ export MIKKU_GITHUB_OWNER=p1ass
 $ export MIKKU_MANIFEST_REPOSITORY=manifest-repository
 $ export MIKKU_MANIFEST_FILEPATH=manifests/{{.Repository}}/deployment.yml
