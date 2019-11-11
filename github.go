@@ -95,7 +95,7 @@ func (s *GitHubService) GetMergedPRsAfterLatestRelease(repo string) ([]*github.P
 	if err != nil {
 		return nil, fmt.Errorf("get latest release: %w", err)
 	}
-	prs, err := s.getMergedPRsAfter(repo, release.CreatedAt.Time)
+	prs, err := s.getMergedPRsAfter(repo, release.PublishedAt.Time)
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}

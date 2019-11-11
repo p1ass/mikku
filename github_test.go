@@ -217,7 +217,7 @@ func TestGitHubService_GetMergedPRsAfterLatestRelease(t *testing.T) {
 			repo: "test-repo",
 			repoInjector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
 				cli.EXPECT().GetLatestRelease(gomock.Any(), "test-owner", "test-repo").Return(&github.RepositoryRelease{
-					CreatedAt: &github.Timestamp{
+					PublishedAt: &github.Timestamp{
 						time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				}, &github.Response{}, nil)
@@ -267,11 +267,11 @@ func TestGitHubService_GetMergedPRsAfterLatestRelease(t *testing.T) {
 		},
 
 		{
-			name: "success",
+			name: "failed to call listing PR API",
 			repo: "test-repo",
 			repoInjector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
 				cli.EXPECT().GetLatestRelease(gomock.Any(), "test-owner", "test-repo").Return(&github.RepositoryRelease{
-					CreatedAt: &github.Timestamp{
+					PublishedAt: &github.Timestamp{
 						time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				}, &github.Response{}, nil)
