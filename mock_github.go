@@ -11,31 +11,31 @@ import (
 	reflect "reflect"
 )
 
-// MockGitHubClient is a mock of GitHubClient interface
-type MockGitHubClient struct {
+// MockGitHubRepositoriesClient is a mock of GitHubRepositoriesClient interface
+type MockGitHubRepositoriesClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockGitHubClientMockRecorder
+	recorder *MockGitHubRepositoriesClientMockRecorder
 }
 
-// MockGitHubClientMockRecorder is the mock recorder for MockGitHubClient
-type MockGitHubClientMockRecorder struct {
-	mock *MockGitHubClient
+// MockGitHubRepositoriesClientMockRecorder is the mock recorder for MockGitHubRepositoriesClient
+type MockGitHubRepositoriesClientMockRecorder struct {
+	mock *MockGitHubRepositoriesClient
 }
 
-// NewMockGitHubClient creates a new mock instance
-func NewMockGitHubClient(ctrl *gomock.Controller) *MockGitHubClient {
-	mock := &MockGitHubClient{ctrl: ctrl}
-	mock.recorder = &MockGitHubClientMockRecorder{mock}
+// NewMockGitHubRepositoriesClient creates a new mock instance
+func NewMockGitHubRepositoriesClient(ctrl *gomock.Controller) *MockGitHubRepositoriesClient {
+	mock := &MockGitHubRepositoriesClient{ctrl: ctrl}
+	mock.recorder = &MockGitHubRepositoriesClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockGitHubClient) EXPECT() *MockGitHubClientMockRecorder {
+func (m *MockGitHubRepositoriesClient) EXPECT() *MockGitHubRepositoriesClientMockRecorder {
 	return m.recorder
 }
 
 // CreateRelease mocks base method
-func (m *MockGitHubClient) CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error) {
+func (m *MockGitHubRepositoriesClient) CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRelease", ctx, owner, repo, release)
 	ret0, _ := ret[0].(*github.RepositoryRelease)
@@ -45,13 +45,13 @@ func (m *MockGitHubClient) CreateRelease(ctx context.Context, owner, repo string
 }
 
 // CreateRelease indicates an expected call of CreateRelease
-func (mr *MockGitHubClientMockRecorder) CreateRelease(ctx, owner, repo, release interface{}) *gomock.Call {
+func (mr *MockGitHubRepositoriesClientMockRecorder) CreateRelease(ctx, owner, repo, release interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRelease", reflect.TypeOf((*MockGitHubClient)(nil).CreateRelease), ctx, owner, repo, release)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRelease", reflect.TypeOf((*MockGitHubRepositoriesClient)(nil).CreateRelease), ctx, owner, repo, release)
 }
 
 // GetLatestRelease mocks base method
-func (m *MockGitHubClient) GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
+func (m *MockGitHubRepositoriesClient) GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLatestRelease", ctx, owner, repo)
 	ret0, _ := ret[0].(*github.RepositoryRelease)
@@ -61,7 +61,46 @@ func (m *MockGitHubClient) GetLatestRelease(ctx context.Context, owner, repo str
 }
 
 // GetLatestRelease indicates an expected call of GetLatestRelease
-func (mr *MockGitHubClientMockRecorder) GetLatestRelease(ctx, owner, repo interface{}) *gomock.Call {
+func (mr *MockGitHubRepositoriesClientMockRecorder) GetLatestRelease(ctx, owner, repo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestRelease", reflect.TypeOf((*MockGitHubClient)(nil).GetLatestRelease), ctx, owner, repo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestRelease", reflect.TypeOf((*MockGitHubRepositoriesClient)(nil).GetLatestRelease), ctx, owner, repo)
+}
+
+// MockGitHubPullRequestsClient is a mock of GitHubPullRequestsClient interface
+type MockGitHubPullRequestsClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockGitHubPullRequestsClientMockRecorder
+}
+
+// MockGitHubPullRequestsClientMockRecorder is the mock recorder for MockGitHubPullRequestsClient
+type MockGitHubPullRequestsClientMockRecorder struct {
+	mock *MockGitHubPullRequestsClient
+}
+
+// NewMockGitHubPullRequestsClient creates a new mock instance
+func NewMockGitHubPullRequestsClient(ctrl *gomock.Controller) *MockGitHubPullRequestsClient {
+	mock := &MockGitHubPullRequestsClient{ctrl: ctrl}
+	mock.recorder = &MockGitHubPullRequestsClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockGitHubPullRequestsClient) EXPECT() *MockGitHubPullRequestsClientMockRecorder {
+	return m.recorder
+}
+
+// List mocks base method
+func (m *MockGitHubPullRequestsClient) List(ctx context.Context, owner, repo string, opt *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx, owner, repo, opt)
+	ret0, _ := ret[0].([]*github.PullRequest)
+	ret1, _ := ret[1].(*github.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// List indicates an expected call of List
+func (mr *MockGitHubPullRequestsClientMockRecorder) List(ctx, owner, repo, opt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGitHubPullRequestsClient)(nil).List), ctx, owner, repo, opt)
 }

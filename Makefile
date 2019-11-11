@@ -1,4 +1,4 @@
-.PHONY: lint tests mockgen
+.PHONY: lint tests generate
 
 lint:
 	golint -set_exit_status ./...
