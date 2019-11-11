@@ -18,6 +18,7 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 	type args struct {
 		repo    string
 		tagName string
+		body    string
 	}
 	tests := []struct {
 		name     string
@@ -31,23 +32,18 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 			args: args{
 				repo:    "test-repo",
 				tagName: "v1.0.0",
+				body:    "## v1.0.0",
 			},
 			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
 				cli.EXPECT().CreateRelease(gomock.Any(), "test-owner", "test-repo", &github.RepositoryRelease{
 					TagName: github.String("v1.0.0"),
 					Name:    github.String("v1.0.0"),
-					Body: github.String(`
-## Changelog
-- test (#10) by @p1ass
-`),
+					Body:    github.String("## v1.0.0"),
 				}).Return(&github.RepositoryRelease{
 					TagName:         github.String("v1.0.0"),
 					TargetCommitish: github.String("TargetCommitish"),
 					Name:            github.String("v1.0.0"),
-					Body: github.String(`
-## Changelog
-- test (#10) by @p1ass
-`),
+					Body:            github.String("## v1.0.0"),
 				}, nil, nil)
 				return cli
 			},
@@ -55,10 +51,7 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 				TagName:         github.String("v1.0.0"),
 				TargetCommitish: github.String("TargetCommitish"),
 				Name:            github.String("v1.0.0"),
-				Body: github.String(`
-## Changelog
-- test (#10) by @p1ass
-`),
+				Body:            github.String("## v1.0.0"),
 			},
 			wantErr: false,
 		},
@@ -67,15 +60,13 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 			args: args{
 				repo:    "test-repo",
 				tagName: "v1.0.0",
+				body:    "## v1.0.0",
 			},
 			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
 				cli.EXPECT().CreateRelease(gomock.Any(), "test-owner", "test-repo", &github.RepositoryRelease{
 					TagName: github.String("v1.0.0"),
 					Name:    github.String("v1.0.0"),
-					Body: github.String(`
-## Changelog
-- test (#10) by @p1ass
-`),
+					Body:    github.String("## v1.0.0"),
 				}).Return(nil, nil, fmt.Errorf("error has occured"))
 				return cli
 			},
@@ -92,44 +83,13 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 
 			s := newGitHubService("test-owner", cli, nil)
 
-			got, err := s.CreateReleaseByTagName(tt.args.repo, tt.args.tagName)
+			got, err := s.CreateReleaseByTagName(tt.args.repo, tt.args.tagName, tt.args.body)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GitHubService.CreateRelease() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
 				t.Errorf("GitHubService.CreateRelease() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_generateReleaseBody(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		want    string
-		wantErr bool
-	}{
-		{
-			name: "no error",
-			want: `
-## Changelog
-- test (#10) by @p1ass
-`,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateReleaseBody()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("generateReleaseBody() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("generateReleaseBody() = %v, want %v", got, tt.want)
 			}
 		})
 	}
