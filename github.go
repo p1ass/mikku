@@ -1,12 +1,10 @@
 package mikku
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"text/template"
 	"time"
 
 	"github.com/google/go-github/v28/github"
@@ -14,12 +12,8 @@ import (
 )
 
 const (
-	baseBranch      = "master"
-	listPerPage     = 10
-	releaseTemplate = `
-## Changelog
-- test (#10) by @p1ass
-`
+	baseBranch  = "master"
+	listPerPage = 10
 )
 
 var (
@@ -69,12 +63,7 @@ func newGitHubService(owner string, githubCli GitHubRepositoriesClient, prCli Gi
 }
 
 // CreateReleaseByTagName creates GitHub release with a given tag
-func (s *GitHubService) CreateReleaseByTagName(repo, tagName string) (*github.RepositoryRelease, error) {
-	body, err := generateReleaseBody()
-	if err != nil {
-		return nil, fmt.Errorf("generate release body: %w", err)
-	}
-
+func (s *GitHubService) CreateReleaseByTagName(repo, tagName, body string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
 	release, _, err := s.repoCli.CreateRelease(ctx, s.owner, repo, &github.RepositoryRelease{
 		TagName: github.String(tagName),
@@ -85,20 +74,6 @@ func (s *GitHubService) CreateReleaseByTagName(repo, tagName string) (*github.Re
 		return nil, fmt.Errorf("call creating release API: %w", err)
 	}
 	return release, nil
-}
-
-func generateReleaseBody() (string, error) {
-	tmpl, err := template.New("body").Parse(releaseTemplate)
-	if err != nil {
-		return "", fmt.Errorf("template parse error: %w", err)
-	}
-
-	buff := bytes.NewBuffer([]byte{})
-
-	if err := tmpl.Execute(buff, nil); err != nil {
-		return "", fmt.Errorf("template execute error: %w", err)
-	}
-	return buff.String(), nil
 }
 
 // getLatestRelease gets the latest release
