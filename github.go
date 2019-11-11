@@ -40,7 +40,7 @@ type GitHubPullRequestsClient interface {
 	List(ctx context.Context, owner string, repo string, opt *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 }
 
-// GitHubService calls GitHub API through GitHubRepositoriesClient
+// GitHubService handles application logic using GitHub API
 type GitHubService struct {
 	owner   string
 	repoCli GitHubRepositoriesClient
@@ -114,7 +114,7 @@ func (s *GitHubService) getLatestRelease(repo string) (*github.RepositoryRelease
 	return release, nil
 }
 
-// GetMergedPRsAfterLatestRelease gets pull requests merged after the latest release
+// GetMergedPRsAfterLatestRelease gets pull requests which are merged after the latest release
 func (s *GitHubService) GetMergedPRsAfterLatestRelease(repo string) ([]*github.PullRequest, error) {
 	release, err := s.getLatestRelease(repo)
 	if err != nil {
