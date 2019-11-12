@@ -2,6 +2,7 @@ package mikku
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,12 @@ const (
 	patch
 	version
 )
+
+var semVerReg = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.([0-9]+)`)
+
+func validSemver(ver string) bool {
+	return semVerReg.Match([]byte(ver))
+}
 
 func bumpVersion(tag string, typ bumpType) (string, error) {
 	tag = strings.TrimPrefix(tag, semVerPrefix)

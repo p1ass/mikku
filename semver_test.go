@@ -6,6 +6,59 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func Test_validSemver(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		ver  string
+		want bool
+	}{
+		{
+			name: "v1.2.3",
+			ver:  "v1.2.3",
+			want: true,
+		},
+		{
+			name: "v0.0.0",
+			ver:  "v0.0.0",
+			want: true,
+		},
+		{
+			name: "v.2.3",
+			ver:  "v.3.3",
+			want: false,
+		},
+		{
+			name: "v1..3",
+			ver:  "v1..3",
+			want: false,
+		},
+		{
+			name: "v1.2.",
+			ver:  "v1.2.",
+			want: false,
+		},
+		{
+			name: "1.2.3",
+			ver:  "1.2.3",
+			want: false,
+		},
+		{
+			name: "v1.2.a",
+			ver:  "1.2.a",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := validSemver(tt.ver); got != tt.want {
+				t.Errorf("validSemver() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_bumpVersion(t *testing.T) {
 	t.Parallel()
 
