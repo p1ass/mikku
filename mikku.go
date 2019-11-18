@@ -2,9 +2,11 @@ package mikku
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/google/go-github/v28/github"
@@ -69,6 +71,58 @@ func Release(repo string, version string) error {
 
 	_, _ = fmt.Fprintf(os.Stdout, "Release was created.\n")
 	_, _ = fmt.Fprintf(os.Stdout, *newRelease.HTMLURL+"\n")
+
+	return nil
+}
+
+// PullRequest is the entry point of `mikku pr` command
+func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error {
+	cfg, err := ReadConfig()
+	if err != nil {
+		return fmt.Errorf("release: %w", err)
+	}
+
+	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
+
+	encodedFile, err := svc.GetFile(manifestRepo, pathToManifestFile)
+	if err != nil {
+		return fmt.Errorf("failed to get manifest file: %w", err)
+	}
+
+	binaryFile, err := base64.StdEncoding.DecodeString(encodedFile)
+	if err != nil {
+		return fmt.Errorf("failed to decode encoded manifest file: %w", err)
+	}
+
+	release, err := svc.getLatestRelease(manifestRepo)
+	if err != nil {
+		if errors.Is(err, ErrReleaseNotFound) {
+			_, _ = fmt.Fprintf(os.Stdout, "Release not found. \n")
+			return fmt.Errorf("failed to get the latest release: %w", err)
+		} else {
+			return fmt.Errorf("failed to get latest release: %w", err)
+		}
+	}
+	tag := *release.TagName
+
+	// TODO: Replace old tag to new tag correctly
+	replacedFIle := strings.ReplaceAll(string(binaryFile), imageName+tag, imageName+tag)
+
+	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
+
+	if err := svc.CreateBranch(manifestRepo, branch); err != nil {
+		return fmt.Errorf("failed to create branch: %w", err)
+	}
+
+	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, []byte(replacedFIle)); err != nil {
+		return fmt.Errorf("failed to push updated the manifest file: %w", err)
+	}
+
+	pr, err := svc.CreatePullRequest(manifestRepo, branch)
+	if err != nil {
+		return fmt.Errorf("failed to create a pull request: %w", err)
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s", *pr.HTMLURL)
 
 	return nil
 }
