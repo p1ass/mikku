@@ -62,6 +62,19 @@ func newGitHubService(owner string, githubCli GitHubRepositoriesClient, prCli Gi
 	}
 }
 
+func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, string, error) {
+	after := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	tag := ""
+	release, err := s.getLatestRelease(repo)
+	if err != nil {
+		return after, "", fmt.Errorf("get latest release: %w", err)
+	}
+
+	after = release.PublishedAt.Time
+	tag = *release.TagName
+	return after, tag, nil
+}
+
 // CreateReleaseByTagName creates GitHub release with a given tag
 func (s *GitHubService) CreateReleaseByTagName(repo, tagName, body string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
