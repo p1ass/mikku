@@ -27,11 +27,21 @@ var (
 type GitHubRepositoriesClient interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
+
+	GetContents(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
+	UpdateFile(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
 }
 
 // GitHubPullRequestsClient is a interface for calling GitHub API about pull requests
 type GitHubPullRequestsClient interface {
 	List(ctx context.Context, owner string, repo string, opt *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
+
+	Create(ctx context.Context, owner string, repo string, pull *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
+}
+
+type GitHubGitClient interface {
+	GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error)
+	CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error)
 }
 
 // GitHubService handles application logic using GitHub API
@@ -132,6 +142,26 @@ func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*gith
 	}
 
 	return prList, nil
+}
+
+// GetManifestFile fetches the file from GitHub and return it encoded by base64
+func (s *GitHubService) GetManifestFile(repo, filePath string) (string, error) {
+	return "", errors.New("must be implemented")
+}
+
+// PushManifestFile pushes the updated file
+func (s *GitHubService) PushManifestFile(repo, filePath, branch string, body []byte) error {
+	return errors.New("must be implemented")
+}
+
+// CreatePullRequest creates a pull request
+func (s *GitHubService) CreatePullRequest(repo, branch string) (*github.PullRequest, error) {
+	return nil, errors.New("must be implemented")
+}
+
+// CreateBranch creates new branch
+func (s *GitHubService) CreateBranch(repo, branch string) error {
+	return errors.New("must be implemented")
 }
 
 // extractMergedPRsAfter extract merged PRs after a given time
