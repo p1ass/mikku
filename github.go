@@ -62,6 +62,19 @@ func newGitHubService(owner string, githubCli GitHubRepositoriesClient, prCli Gi
 	}
 }
 
+func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, string, error) {
+	after := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	tag := ""
+	release, err := s.getLatestRelease(repo)
+	if err != nil {
+		return after, "", fmt.Errorf("get latest release: %w", err)
+	}
+
+	after = release.PublishedAt.Time
+	tag = *release.TagName
+	return after, tag, nil
+}
+
 // CreateReleaseByTagName creates GitHub release with a given tag
 func (s *GitHubService) CreateReleaseByTagName(repo, tagName, body string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
@@ -87,19 +100,6 @@ func (s *GitHubService) getLatestRelease(repo string) (*github.RepositoryRelease
 		return nil, fmt.Errorf("call getting the latest release API: %w", err)
 	}
 	return release, nil
-}
-
-// GetMergedPRsAfterLatestRelease gets pull requests which are merged after the latest release
-func (s *GitHubService) GetMergedPRsAfterLatestRelease(repo string) ([]*github.PullRequest, error) {
-	release, err := s.getLatestRelease(repo)
-	if err != nil {
-		return nil, fmt.Errorf("get latest release: %w", err)
-	}
-	prs, err := s.getMergedPRsAfter(repo, release.PublishedAt.Time)
-	if err != nil {
-		return nil, fmt.Errorf("get pull requests: %w", err)
-	}
-	return prs, nil
 }
 
 func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*github.PullRequest, error) {
