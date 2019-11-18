@@ -144,13 +144,13 @@ func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*gith
 	return prList, nil
 }
 
-// GetManifestFile fetches the file from GitHub and return it encoded by base64
-func (s *GitHubService) GetManifestFile(repo, filePath string) (string, error) {
+// GetFile fetches the file from GitHub and return it encoded by base64
+func (s *GitHubService) GetFile(repo, filePath string) (string, error) {
 	return "", errors.New("must be implemented")
 }
 
-// PushManifestFile pushes the updated file
-func (s *GitHubService) PushManifestFile(repo, filePath, branch string, body []byte) error {
+// PushFile pushes the updated file
+func (s *GitHubService) PushFile(repo, filePath, branch string, body []byte) error {
 	return errors.New("must be implemented")
 }
 

@@ -84,7 +84,7 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 
 	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	encodedFile, err := svc.GetManifestFile(manifestRepo, pathToManifestFile)
+	encodedFile, err := svc.GetFile(manifestRepo, pathToManifestFile)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
@@ -114,7 +114,7 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	if err := svc.PushManifestFile(manifestRepo, pathToManifestFile, branch, []byte(replacedFIle)); err != nil {
+	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, []byte(replacedFIle)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
