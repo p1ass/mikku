@@ -89,19 +89,6 @@ func (s *GitHubService) getLatestRelease(repo string) (*github.RepositoryRelease
 	return release, nil
 }
 
-// GetMergedPRsAfterLatestRelease gets pull requests which are merged after the latest release
-func (s *GitHubService) GetMergedPRsAfterLatestRelease(repo string) ([]*github.PullRequest, error) {
-	release, err := s.getLatestRelease(repo)
-	if err != nil {
-		return nil, fmt.Errorf("get latest release: %w", err)
-	}
-	prs, err := s.getMergedPRsAfter(repo, release.PublishedAt.Time)
-	if err != nil {
-		return nil, fmt.Errorf("get pull requests: %w", err)
-	}
-	return prs, nil
-}
-
 func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*github.PullRequest, error) {
 	opt := &github.PullRequestListOptions{
 		State:       "closed",
