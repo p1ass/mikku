@@ -2,7 +2,6 @@ package mikku
 
 import (
 	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -84,14 +83,9 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 
 	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	encodedFile, err := svc.GetFile(manifestRepo, pathToManifestFile)
+	manifest, err := svc.GetFile(manifestRepo, pathToManifestFile)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
-	}
-
-	binaryFile, err := base64.StdEncoding.DecodeString(encodedFile)
-	if err != nil {
-		return fmt.Errorf("failed to decode encoded manifest file: %w", err)
 	}
 
 	release, err := svc.getLatestRelease(manifestRepo)
@@ -103,10 +97,10 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 			return fmt.Errorf("failed to get latest release: %w", err)
 		}
 	}
-	tag := *release.TagName
+	tag := release.GetTagName()
 
 	// TODO: Replace old tag to new tag correctly
-	replacedFIle := strings.ReplaceAll(string(binaryFile), imageName+tag, imageName+tag)
+	replacedFIle := strings.ReplaceAll(manifest, imageName+tag, imageName+tag)
 
 	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
 
@@ -114,11 +108,16 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, []byte(replacedFIle)); err != nil {
+	commitMessage := ""
+	commitHash := ""
+
+	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, commitHash, []byte(replacedFIle)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
-	pr, err := svc.CreatePullRequest(manifestRepo, branch)
+	title := ""
+	body := ""
+	pr, err := svc.CreatePullRequest(manifestRepo, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
