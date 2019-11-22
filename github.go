@@ -19,6 +19,9 @@ const (
 var (
 	// ErrReleaseNotFound represents error that the release does not found
 	ErrReleaseNotFound = errors.New("release not found")
+
+	errFileNotFound       = errors.New("file not found")
+	errContentIsDirectory = errors.New("content is directory, not file")
 )
 
 //go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
@@ -49,6 +52,7 @@ type GitHubService struct {
 	owner   string
 	repoCli GitHubRepositoriesClient
 	prCli   GitHubPullRequestsClient
+	gitCli  GitHubGitClient
 }
 
 // NewGitHubService returns a pointer of GitHubService
@@ -61,14 +65,15 @@ func NewGitHubService(owner, accessToken string) *GitHubService {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	return newGitHubService(owner, client.Repositories, client.PullRequests)
+	return newGitHubService(owner, client.Repositories, client.PullRequests, client.Git)
 }
 
-func newGitHubService(owner string, githubCli GitHubRepositoriesClient, prCli GitHubPullRequestsClient) *GitHubService {
+func newGitHubService(owner string, repoCli GitHubRepositoriesClient, prCli GitHubPullRequestsClient, gitCli GitHubGitClient) *GitHubService {
 	return &GitHubService{
 		owner:   owner,
-		repoCli: githubCli,
+		repoCli: repoCli,
 		prCli:   prCli,
+		gitCli:  gitCli,
 	}
 }
 
@@ -81,7 +86,7 @@ func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, s
 	}
 
 	after = release.PublishedAt.Time
-	tag = *release.TagName
+	tag = release.GetTagName()
 	return after, tag, nil
 }
 
@@ -144,24 +149,81 @@ func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*gith
 	return prList, nil
 }
 
-// GetFile fetches the file from GitHub and return it encoded by base64
+// GetFile fetches the file from GitHub and return it
 func (s *GitHubService) GetFile(repo, filePath string) (string, error) {
-	return "", errors.New("must be implemented")
+	ctx := context.Background()
+	file, _, resp, err := s.repoCli.GetContents(ctx, s.owner, repo, filePath, &github.RepositoryContentGetOptions{
+		Ref: baseBranch,
+	})
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return "", fmt.Errorf("%s: %w", filePath, errFileNotFound)
+		}
+		return "", fmt.Errorf("call getting contents api: %w", err)
+	}
+
+	if file == nil {
+		return "", errContentIsDirectory
+	}
+
+	content, err := file.GetContent()
+	if err != nil {
+		return "", fmt.Errorf("failed to decode encoded file: %w", err)
+	}
+
+	return content, nil
 }
 
 // PushFile pushes the updated file
-func (s *GitHubService) PushFile(repo, filePath, branch string, body []byte) error {
-	return errors.New("must be implemented")
+func (s *GitHubService) PushFile(repo, filePath, branch, commitMessage, commitSHA string, body []byte) error {
+	ctx := context.Background()
+	_, _, err := s.repoCli.UpdateFile(ctx, s.owner, repo, filePath, &github.RepositoryContentFileOptions{
+		Message: github.String(commitMessage),
+		Content: body,
+		SHA:     github.String(commitSHA),
+		Branch:  github.String(branch),
+		Committer: &github.CommitAuthor{
+			Name:  github.String("mikku"),
+			Email: github.String("mikku@p1ass.com"),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("call updating file api: %w", err)
+	}
+
+	return nil
 }
 
 // CreatePullRequest creates a pull request
-func (s *GitHubService) CreatePullRequest(repo, branch string) (*github.PullRequest, error) {
-	return nil, errors.New("must be implemented")
+func (s *GitHubService) CreatePullRequest(repo, branch, title, body string) (*github.PullRequest, error) {
+	ctx := context.Background()
+	pr, _, err := s.prCli.Create(ctx, s.owner, repo, &github.NewPullRequest{
+		Title: github.String(title),
+		Head:  github.String(branch),
+		Base:  github.String(baseBranch),
+		Body:  github.String(body),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("call create pull request api: %w", err)
+	}
+
+	return pr, nil
 }
 
 // CreateBranch creates new branch
 func (s *GitHubService) CreateBranch(repo, branch string) error {
-	return errors.New("must be implemented")
+	ctx := context.Background()
+	ref, _, err := s.gitCli.GetRef(ctx, s.owner, repo, fmt.Sprintf("heads/%s", baseBranch))
+	if err != nil {
+		return fmt.Errorf("call getting reference api :%w", err)
+	}
+
+	ref.Ref = github.String("refs/heads/" + branch)
+	if _, _, err := s.gitCli.CreateRef(ctx, s.owner, repo, ref); err != nil {
+		return fmt.Errorf("call creating refrence api: %w", err)
+	}
+
+	return nil
 }
 
 // extractMergedPRsAfter extract merged PRs after a given time
