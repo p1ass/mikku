@@ -88,14 +88,10 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
 
-	release, err := svc.getLatestRelease(manifestRepo)
+	release, err := svc.getLatestRelease(repo)
 	if err != nil {
-		if errors.Is(err, ErrReleaseNotFound) {
-			_, _ = fmt.Fprintf(os.Stdout, "Release not found. \n")
-			return fmt.Errorf("failed to get the latest release: %w", err)
-		} else {
-			return fmt.Errorf("failed to get latest release: %w", err)
-		}
+		return fmt.Errorf("failed to get latest release: %w", err)
+
 	}
 	tag := release.GetTagName()
 
@@ -111,19 +107,19 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	commitMessage := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
+	commitMessage := fmt.Sprintf("Bump %s to %s", imageName, tag)
 
 	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
-	title := fmt.Sprintf("bump %s to %s", imageName, tag)
-	body := fmt.Sprintf("bump %s to %s.", imageName, tag)
+	title := fmt.Sprintf("Bump %s to %s", imageName, tag)
+	body := fmt.Sprintf("Bump %s to %s", imageName, tag)
 	pr, err := svc.CreatePullRequest(manifestRepo, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s", pr.GetHTMLURL())
+	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s\n", pr.GetHTMLURL())
 
 	return nil
 }
