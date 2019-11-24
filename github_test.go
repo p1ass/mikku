@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-github/v28/github"
 )
 
-func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
+func TestGitHubClient_createRelease(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -81,15 +81,15 @@ func TestGitHubClient_CreateReleaseByTagName(t *testing.T) {
 			cli := NewMockGitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil, nil)
 
-			got, err := s.CreateReleaseByTagName(tt.args.repo, tt.args.tagName, tt.args.body)
+			got, err := s.createRelease(tt.args.repo, tt.args.tagName, tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GitHubService.CreateRelease() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("githubClient.CreateRelease() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("GitHubService.CreateRelease() = %v, want %v", got, tt.want)
+				t.Errorf("githubClient.CreateRelease() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -159,7 +159,7 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 				return cli
 			},
 			want:    nil,
-			wantErr: ErrReleaseNotFound,
+			wantErr: errReleaseNotFound,
 		},
 		{
 			name: "unhandled error",
@@ -186,16 +186,16 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 			cli := NewMockGitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil, nil)
 
 			got, err := s.getLatestRelease(tt.repo)
 			fmt.Printf("%#v\n", got)
 			if (tt.wantErr == nil && err != nil) || (tt.wantErr != nil && !errors.As(err, &tt.wantErr)) {
-				t.Errorf("GitHubService.getLatestRelease() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("githubClient.getLatestRelease() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("GitHubService.getLatestRelease()diff=%s", cmp.Diff(got, tt.want))
+				t.Errorf("githubClient.getLatestRelease()diff=%s", cmp.Diff(got, tt.want))
 			}
 		})
 	}
@@ -353,20 +353,20 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			cli := NewMockGitHubPullRequestsClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", nil, cli, nil)
+			s := newGitHubClient("test-owner", nil, cli, nil)
 			got, err := s.getMergedPRsAfter(tt.repo, tt.after)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GitHubService.getMergedPRsAfter() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("githubClient.getMergedPRsAfter() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("GitHubService.getMergedPRsAfter() diff=%s", cmp.Diff(got, tt.want))
+				t.Errorf("githubClient.getMergedPRsAfter() diff=%s", cmp.Diff(got, tt.want))
 			}
 		})
 	}
 }
 
-func TestGitHubService_GetFile(t *testing.T) {
+func TestGitHubService_getFile(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -467,24 +467,24 @@ func TestGitHubService_GetFile(t *testing.T) {
 			cli := NewMockGitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil, nil)
 
-			gotContent, gotHash, err := s.GetFile(tt.repo, tt.filePath)
+			gotContent, gotHash, err := s.getFile(tt.repo, tt.filePath)
 			if (tt.wantErr == nil && err != nil) || (tt.wantErr != nil && !errors.As(err, &tt.wantErr)) {
-				t.Errorf("GitHubService.GetFile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("githubClient.getFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotContent != tt.wantContent {
-				t.Errorf("GitHubService.GetFile() = %v, wantContent %v", gotContent, tt.wantContent)
+				t.Errorf("githubClient.getFile() = %v, wantContent %v", gotContent, tt.wantContent)
 			}
 			if gotHash != tt.wantHash {
-				t.Errorf("GitHubService.GetFile() = %v, wantHash %v", gotHash, tt.wantHash)
+				t.Errorf("githubClient.getFile() = %v, wantHash %v", gotHash, tt.wantHash)
 			}
 		})
 	}
 }
 
-func TestGitHubService_PushFile(t *testing.T) {
+func TestGitHubService_pushFile(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -570,16 +570,16 @@ func TestGitHubService_PushFile(t *testing.T) {
 			cli := NewMockGitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil, nil)
 
-			if err := s.PushFile(tt.args.repo, tt.args.filePath, tt.args.branch, tt.args.commitMessage, tt.args.commitSHA, tt.args.body); (err != nil) != tt.wantErr {
-				t.Errorf("GitHubService.PushFile() error = %v, wantErr %v", err, tt.wantErr)
+			if err := s.pushFile(tt.args.repo, tt.args.filePath, tt.args.branch, tt.args.commitMessage, tt.args.commitSHA, tt.args.body); (err != nil) != tt.wantErr {
+				t.Errorf("githubClient.pushFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestGitHubService_CreatePullRequest(t *testing.T) {
+func TestGitHubService_createPullRequest(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -655,21 +655,21 @@ func TestGitHubService_CreatePullRequest(t *testing.T) {
 			cli := NewMockGitHubPullRequestsClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", nil, cli, nil)
+			s := newGitHubClient("test-owner", nil, cli, nil)
 
-			got, err := s.CreatePullRequest(tt.args.repo, tt.args.branch, tt.args.title, tt.args.body)
+			got, err := s.createPullRequest(tt.args.repo, tt.args.branch, tt.args.title, tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GitHubService.CreatePullRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("githubClient.createPullRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("GitHubService.CreatePullRequest() = %v, want %v", got, tt.want)
+				t.Errorf("githubClient.createPullRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestGitHubService_CreateBranch(t *testing.T) {
+func TestGitHubService_createBranch(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -766,10 +766,10 @@ func TestGitHubService_CreateBranch(t *testing.T) {
 			cli := NewMockGitHubGitClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubService("test-owner", nil, nil, cli)
+			s := newGitHubClient("test-owner", nil, nil, cli)
 
-			if err := s.CreateBranch(tt.repo, tt.branch); (err != nil) != tt.wantErr {
-				t.Errorf("GitHubService.CreateBranch() error = %v, wantErr %v", err, tt.wantErr)
+			if err := s.createBranch(tt.repo, tt.branch); (err != nil) != tt.wantErr {
+				t.Errorf("githubClient.createBranch() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

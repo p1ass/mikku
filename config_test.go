@@ -74,13 +74,13 @@ func TestReadConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer tt.setEnv()()
 
-			got, err := ReadConfig()
+			got, err := readConfig()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ReadConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("readConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("ReadConfig() diff=%s", cmp.Diff(got, tt.want))
+				t.Errorf("readConfig() diff=%s", cmp.Diff(got, tt.want))
 			}
 		})
 	}

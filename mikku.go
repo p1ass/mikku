@@ -13,18 +13,18 @@ var (
 
 // Release is the entry point of `mikku release` command
 func Release(repo string, version string) error {
-	cfg, err := ReadConfig()
+	cfg, err := readConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
 	}
 
-	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
+	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
 	isFirstRelease := false
 
 	after, currentTag, err := svc.getLastPublishedAndCurrentTag(repo)
 	if err != nil {
-		if errors.Is(err, ErrReleaseNotFound) {
+		if errors.Is(err, errReleaseNotFound) {
 			isFirstRelease = true
 			_, _ = fmt.Fprintf(os.Stdout, "Release not found. First Release...\n")
 
@@ -51,7 +51,7 @@ func Release(repo string, version string) error {
 		return fmt.Errorf("failed to generate release body: %w", err)
 	}
 
-	newRelease, err := svc.CreateReleaseByTagName(repo, newTag, body)
+	newRelease, err := svc.createRelease(repo, newTag, body)
 	if err != nil {
 		return fmt.Errorf("failed to create release: %w", err)
 	}
@@ -64,14 +64,14 @@ func Release(repo string, version string) error {
 
 // PullRequest is the entry point of `mikku pr` command
 func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error {
-	cfg, err := ReadConfig()
+	cfg, err := readConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
 	}
 
-	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
+	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	manifest, hash, err := svc.GetFile(manifestRepo, pathToManifestFile)
+	manifest, hash, err := svc.getFile(manifestRepo, pathToManifestFile)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
@@ -88,18 +88,18 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	}
 
 	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
-	if err := svc.CreateBranch(manifestRepo, branch); err != nil {
+	if err := svc.createBranch(manifestRepo, branch); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
 	commitMessage := fmt.Sprintf("Bump %s to %s", imageName, tag)
-	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
+	if err := svc.pushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
 	title := fmt.Sprintf("Bump %s to %s", imageName, tag)
 	body := fmt.Sprintf("Bump %s to %s", imageName, tag)
-	pr, err := svc.CreatePullRequest(manifestRepo, branch, title, body)
+	pr, err := svc.createPullRequest(manifestRepo, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
