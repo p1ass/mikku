@@ -23,7 +23,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 	tests := []struct {
 		name     string
 		args     args
-		injector func(*MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
+		injector func(*MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient
 		want     *github.RepositoryRelease
 		wantErr  bool
 	}{
@@ -34,7 +34,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 				tagName: "v1.0.0",
 				body:    "## v1.0.0",
 			},
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().CreateRelease(gomock.Any(), "test-owner", "test-repo", &github.RepositoryRelease{
 					TagName: github.String("v1.0.0"),
 					Name:    github.String("v1.0.0"),
@@ -62,7 +62,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 				tagName: "v1.0.0",
 				body:    "## v1.0.0",
 			},
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().CreateRelease(gomock.Any(), "test-owner", "test-repo", &github.RepositoryRelease{
 					TagName: github.String("v1.0.0"),
 					Name:    github.String("v1.0.0"),
@@ -78,7 +78,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubRepositoriesClient(ctrl)
+			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", cli, nil, nil)
@@ -101,13 +101,13 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 	tests := []struct {
 		name     string
 		repo     string
-		injector func(*MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
+		injector func(*MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient
 		want     *github.RepositoryRelease
 		wantErr  error
 	}{{
 		name: "release found",
 		repo: "test-repo",
-		injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+		injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 			cli.EXPECT().GetLatestRelease(gomock.Any(), "test-owner", "test-repo").Return(
 				&github.RepositoryRelease{
 					TagName:         github.String("v1.0.0"),
@@ -150,7 +150,7 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 		{
 			name: "release not found",
 			repo: "test-repo",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetLatestRelease(gomock.Any(), "test-owner", "test-repo").Return(nil, &github.Response{
 					Response: &http.Response{
 						StatusCode: http.StatusNotFound,
@@ -164,7 +164,7 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 		{
 			name: "unhandled error",
 			repo: "test-repo",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetLatestRelease(gomock.Any(), "test-owner", "test-repo").Return(nil, &github.Response{
 					Response: &http.Response{
 						Request: &http.Request{
@@ -183,7 +183,7 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubRepositoriesClient(ctrl)
+			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", cli, nil, nil)
@@ -208,7 +208,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 		name     string
 		repo     string
 		after    time.Time
-		injector func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient
+		injector func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient
 		want     []*github.PullRequest
 		wantErr  bool
 	}{
@@ -216,7 +216,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			name:  "get all necessary PRs at once",
 			repo:  "test-repo",
 			after: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().List(gomock.Any(), "test-owner", "test-repo", gomock.Any()).Return([]*github.PullRequest{
 					{
 						ID:        github.Int64(2),
@@ -246,7 +246,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			name:  "get all necessary PRs twice",
 			repo:  "test-repo",
 			after: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().List(gomock.Any(), "test-owner", "test-repo", gomock.Any()).Return([]*github.PullRequest{
 					{
 						ID:        github.Int64(4),
@@ -300,7 +300,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			name:  "get all PRs, so no more PR",
 			repo:  "test-repo",
 			after: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().List(gomock.Any(), "test-owner", "test-repo", gomock.Any()).Return([]*github.PullRequest{
 					{
 						ID:        github.Int64(4),
@@ -335,7 +335,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			name:  "list PR API error",
 			repo:  "test-repo",
 			after: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().List(gomock.Any(), "test-owner", "test-repo", gomock.Any()).Return(nil,
 					&github.Response{
 						NextPage: 1,
@@ -350,7 +350,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubPullRequestsClient(ctrl)
+			cli := NewMockgitHubPullRequestsClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", nil, cli, nil)
@@ -373,7 +373,7 @@ func TestGitHubService_getFile(t *testing.T) {
 		name        string
 		repo        string
 		filePath    string
-		injector    func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
+		injector    func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient
 		wantContent string
 		wantHash    string
 		wantErr     error
@@ -382,7 +382,7 @@ func TestGitHubService_getFile(t *testing.T) {
 			name:     "success in getting file",
 			repo:     "test-repo",
 			filePath: "manifests/repo/deployment.yml",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetContents(gomock.Any(), "test-owner", "test-repo", "manifests/repo/deployment.yml", &github.RepositoryContentGetOptions{
 					Ref: baseBranch,
 				}).Return(&github.RepositoryContent{
@@ -404,7 +404,7 @@ func TestGitHubService_getFile(t *testing.T) {
 			name:     "file not found",
 			repo:     "test-repo",
 			filePath: "manifests/repo/deployment.yml",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetContents(gomock.Any(), "test-owner", "test-repo", "manifests/repo/deployment.yml", &github.RepositoryContentGetOptions{
 					Ref: baseBranch,
 				}).Return(nil, nil, &github.Response{
@@ -422,7 +422,7 @@ func TestGitHubService_getFile(t *testing.T) {
 			name:     "unknown error",
 			repo:     "test-repo",
 			filePath: "manifests/repo/deployment.yml",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetContents(gomock.Any(), "test-owner", "test-repo", "manifests/repo/deployment.yml", &github.RepositoryContentGetOptions{
 					Ref: baseBranch,
 				}).Return(nil, nil, &github.Response{
@@ -440,7 +440,7 @@ func TestGitHubService_getFile(t *testing.T) {
 			name:     "getting content is directory, not file",
 			repo:     "test-repo",
 			filePath: "manifests/repo/deployment.yml",
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().GetContents(gomock.Any(), "test-owner", "test-repo", "manifests/repo/deployment.yml", &github.RepositoryContentGetOptions{
 					Ref: baseBranch,
 				}).Return(nil, []*github.RepositoryContent{
@@ -464,7 +464,7 @@ func TestGitHubService_getFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubRepositoriesClient(ctrl)
+			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", cli, nil, nil)
@@ -498,7 +498,7 @@ func TestGitHubService_pushFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		args     args
-		injector func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
+		injector func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient
 
 		wantErr bool
 	}{
@@ -512,7 +512,7 @@ func TestGitHubService_pushFile(t *testing.T) {
 				commitSHA:     "test-commit-sha",
 				body:          []byte("test-body"),
 			},
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().UpdateFile(gomock.Any(), "test-owner", "test-repo", "test-file-path",
 					&github.RepositoryContentFileOptions{
 						Message: github.String("test-commit-message"),
@@ -542,7 +542,7 @@ func TestGitHubService_pushFile(t *testing.T) {
 				commitSHA:     "test-commit-sha",
 				body:          []byte("test-body"),
 			},
-			injector: func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient {
+			injector: func(cli *MockgitHubRepositoriesClient) *MockgitHubRepositoriesClient {
 				cli.EXPECT().UpdateFile(gomock.Any(), "test-owner", "test-repo", "test-file-path",
 					&github.RepositoryContentFileOptions{
 						Message: github.String("test-commit-message"),
@@ -567,7 +567,7 @@ func TestGitHubService_pushFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubRepositoriesClient(ctrl)
+			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", cli, nil, nil)
@@ -591,7 +591,7 @@ func TestGitHubService_createPullRequest(t *testing.T) {
 	tests := []struct {
 		name     string
 		args     args
-		injector func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient
+		injector func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient
 		want     *github.PullRequest
 		wantErr  bool
 	}{
@@ -603,7 +603,7 @@ func TestGitHubService_createPullRequest(t *testing.T) {
 				title:  "test-title",
 				body:   "test-body",
 			},
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().Create(gomock.Any(), "test-owner", "test-repo", &github.NewPullRequest{
 					Title: github.String("test-title"),
 					Head:  github.String("test-branch"),
@@ -631,7 +631,7 @@ func TestGitHubService_createPullRequest(t *testing.T) {
 				title:  "test-title",
 				body:   "test-body",
 			},
-			injector: func(cli *MockGitHubPullRequestsClient) *MockGitHubPullRequestsClient {
+			injector: func(cli *MockgitHubPullRequestsClient) *MockgitHubPullRequestsClient {
 				cli.EXPECT().Create(gomock.Any(), "test-owner", "test-repo", &github.NewPullRequest{
 					Title: github.String("test-title"),
 					Head:  github.String("test-branch"),
@@ -652,7 +652,7 @@ func TestGitHubService_createPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubPullRequestsClient(ctrl)
+			cli := NewMockgitHubPullRequestsClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", nil, cli, nil)
@@ -676,14 +676,14 @@ func TestGitHubService_createBranch(t *testing.T) {
 		name     string
 		repo     string
 		branch   string
-		injector func(cli *MockGitHubGitClient) *MockGitHubGitClient
+		injector func(cli *MockgitHubGitClient) *MockgitHubGitClient
 		wantErr  bool
 	}{
 		{
 			name:   "success in creating a branch",
 			repo:   "test-repo",
 			branch: "test-branch",
-			injector: func(cli *MockGitHubGitClient) *MockGitHubGitClient {
+			injector: func(cli *MockgitHubGitClient) *MockgitHubGitClient {
 				cli.EXPECT().GetRef(gomock.Any(), "test-owner", "test-repo", "heads/master").
 					Return(&github.Reference{
 						Ref: github.String("refs/heads/master"),
@@ -717,7 +717,7 @@ func TestGitHubService_createBranch(t *testing.T) {
 			name:   "failed to create reference",
 			repo:   "test-repo",
 			branch: "test-branch",
-			injector: func(cli *MockGitHubGitClient) *MockGitHubGitClient {
+			injector: func(cli *MockgitHubGitClient) *MockgitHubGitClient {
 				cli.EXPECT().GetRef(gomock.Any(), "test-owner", "test-repo", "heads/master").
 					Return(&github.Reference{
 						Ref: github.String("refs/heads/master"),
@@ -747,7 +747,7 @@ func TestGitHubService_createBranch(t *testing.T) {
 			name:   "failed to get reference",
 			repo:   "test-repo",
 			branch: "test-branch",
-			injector: func(cli *MockGitHubGitClient) *MockGitHubGitClient {
+			injector: func(cli *MockgitHubGitClient) *MockgitHubGitClient {
 				cli.EXPECT().GetRef(gomock.Any(), "test-owner", "test-repo", "heads/master").
 					Return(nil, &github.Response{
 						Response: &http.Response{
@@ -763,7 +763,7 @@ func TestGitHubService_createBranch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			cli := NewMockGitHubGitClient(ctrl)
+			cli := NewMockgitHubGitClient(ctrl)
 			cli = tt.injector(cli)
 
 			s := newGitHubClient("test-owner", nil, nil, cli)
