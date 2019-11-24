@@ -79,24 +79,20 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	release, err := svc.getLatestRelease(repo)
 	if err != nil {
 		return fmt.Errorf("failed to get latest release: %w", err)
-
 	}
 	tag := release.GetTagName()
 
-	currentTag, err := getCurrentTag(manifest, imageName)
+	replacedFile, err := replaceTag(manifest, imageName, tag)
 	if err != nil {
-		return fmt.Errorf("failed to get current tag in yaml file: %w", err)
+		return fmt.Errorf("failed to replace tag: %w", err)
 	}
-	replacedFile := strings.ReplaceAll(manifest, imageName+":"+currentTag, imageName+":"+tag)
 
 	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
-
 	if err := svc.CreateBranch(manifestRepo, branch); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
 	commitMessage := fmt.Sprintf("Bump %s to %s", imageName, tag)
-
 	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
@@ -110,4 +106,12 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s\n", pr.GetHTMLURL())
 
 	return nil
+}
+
+func replaceTag(manifest, imageName, tag string) (string, error) {
+	currentTag, err := getCurrentTag(manifest, imageName)
+	if err != nil {
+		return "", fmt.Errorf("get current tag in yaml file: %w", err)
+	}
+	return strings.ReplaceAll(manifest, imageName+":"+currentTag, imageName+":"+tag), nil
 }
