@@ -83,7 +83,7 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 
 	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	manifest, err := svc.GetFile(manifestRepo, pathToManifestFile)
+	manifest, hash, err := svc.GetFile(manifestRepo, pathToManifestFile)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
@@ -99,8 +99,11 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	}
 	tag := release.GetTagName()
 
-	// TODO: Replace old tag to new tag correctly
-	replacedFIle := strings.ReplaceAll(manifest, imageName+tag, imageName+tag)
+	currentTag, err := getCurrentTag(manifest, imageName)
+	if err != nil {
+		return fmt.Errorf("failed to get current tag in yaml file: %w", err)
+	}
+	replacedFile := strings.ReplaceAll(manifest, imageName+":"+currentTag, imageName+":"+tag)
 
 	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
 
@@ -108,20 +111,19 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	commitMessage := ""
-	commitHash := ""
+	commitMessage := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
 
-	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, commitHash, []byte(replacedFIle)); err != nil {
+	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
-	title := ""
-	body := ""
+	title := fmt.Sprintf("bump %s to %s", imageName, tag)
+	body := fmt.Sprintf("bump %s to %s.", imageName, tag)
 	pr, err := svc.CreatePullRequest(manifestRepo, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s", *pr.HTMLURL)
+	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s", pr.GetHTMLURL())
 
 	return nil
 }

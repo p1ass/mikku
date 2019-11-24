@@ -149,29 +149,30 @@ func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*gith
 	return prList, nil
 }
 
-// GetFile fetches the file from GitHub and return it
-func (s *GitHubService) GetFile(repo, filePath string) (string, error) {
+// GetFile fetches the file from GitHub and return content and hash
+func (s *GitHubService) GetFile(repo, filePath string) (content string, hash string, err error) {
 	ctx := context.Background()
 	file, _, resp, err := s.repoCli.GetContents(ctx, s.owner, repo, filePath, &github.RepositoryContentGetOptions{
 		Ref: baseBranch,
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return "", fmt.Errorf("%s: %w", filePath, errFileNotFound)
+			return "", "", fmt.Errorf("%s: %w", filePath, errFileNotFound)
 		}
-		return "", fmt.Errorf("call getting contents api: %w", err)
+		return "", "", fmt.Errorf("call getting contents api: %w", err)
 	}
 
 	if file == nil {
-		return "", errContentIsDirectory
+		return "", "", errContentIsDirectory
 	}
 
-	content, err := file.GetContent()
+	content, err = file.GetContent()
 	if err != nil {
-		return "", fmt.Errorf("failed to decode encoded file: %w", err)
+		return "", "", fmt.Errorf("failed to decode encoded file: %w", err)
 	}
 
-	return content, nil
+	hash = file.GetSHA()
+	return content, hash, nil
 }
 
 // PushFile pushes the updated file

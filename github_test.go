@@ -370,12 +370,13 @@ func TestGitHubService_GetFile(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		repo     string
-		filePath string
-		injector func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
-		want     string
-		wantErr  error
+		name        string
+		repo        string
+		filePath    string
+		injector    func(cli *MockGitHubRepositoriesClient) *MockGitHubRepositoriesClient
+		wantContent string
+		wantHash    string
+		wantErr     error
 	}{
 		{
 			name:     "success in getting file",
@@ -387,6 +388,7 @@ func TestGitHubService_GetFile(t *testing.T) {
 				}).Return(&github.RepositoryContent{
 					Encoding: github.String("base64"),
 					Content:  github.String("dGVzdC1jb250ZW50"),
+					SHA:      github.String("test-hash"),
 				}, nil, &github.Response{
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
@@ -394,8 +396,9 @@ func TestGitHubService_GetFile(t *testing.T) {
 				}, nil)
 				return cli
 			},
-			want:    "test-content",
-			wantErr: nil,
+			wantContent: "test-content",
+			wantHash:    "test-hash",
+			wantErr:     nil,
 		},
 		{
 			name:     "file not found",
@@ -411,8 +414,9 @@ func TestGitHubService_GetFile(t *testing.T) {
 				}, errors.New("file not found"))
 				return cli
 			},
-			want:    "",
-			wantErr: errFileNotFound,
+			wantContent: "",
+			wantHash:    "",
+			wantErr:     errFileNotFound,
 		},
 		{
 			name:     "unknown error",
@@ -428,8 +432,9 @@ func TestGitHubService_GetFile(t *testing.T) {
 				}, errors.New("unknown error"))
 				return cli
 			},
-			want:    "",
-			wantErr: errors.New("unknown error"),
+			wantContent: "",
+			wantHash:    "",
+			wantErr:     errors.New("unknown error"),
 		},
 		{
 			name:     "getting content is directory, not file",
@@ -450,8 +455,9 @@ func TestGitHubService_GetFile(t *testing.T) {
 				}, nil)
 				return cli
 			},
-			want:    "",
-			wantErr: errContentIsDirectory,
+			wantContent: "",
+			wantHash:    "",
+			wantErr:     errContentIsDirectory,
 		},
 	}
 	for _, tt := range tests {
@@ -463,13 +469,16 @@ func TestGitHubService_GetFile(t *testing.T) {
 
 			s := newGitHubService("test-owner", cli, nil, nil)
 
-			got, err := s.GetFile(tt.repo, tt.filePath)
+			gotContent, gotHash, err := s.GetFile(tt.repo, tt.filePath)
 			if (tt.wantErr == nil && err != nil) || (tt.wantErr != nil && !errors.As(err, &tt.wantErr)) {
 				t.Errorf("GitHubService.GetFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("GitHubService.GetFile() = %v, want %v", got, tt.want)
+			if gotContent != tt.wantContent {
+				t.Errorf("GitHubService.GetFile() = %v, wantContent %v", gotContent, tt.wantContent)
+			}
+			if gotHash != tt.wantHash {
+				t.Errorf("GitHubService.GetFile() = %v, wantHash %v", gotHash, tt.wantHash)
 			}
 		})
 	}
