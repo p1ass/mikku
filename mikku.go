@@ -1,22 +1,10 @@
 package mikku
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
-	"text/template"
-
-	"github.com/google/go-github/v28/github"
-)
-
-const (
-	releaseBodyTemplate = `
-## Changelog
-{{ range $i, $pr := .PullRequests }}
-- {{ $pr.Title }} (#{{ $pr.Number }}) by @{{ $pr.User.Login }}{{ end }}
-`
 )
 
 var (
@@ -122,20 +110,4 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s\n", pr.GetHTMLURL())
 
 	return nil
-}
-
-func generateReleaseBody(prs []*github.PullRequest) (string, error) {
-	tmpl, err := template.New("body").Parse(releaseBodyTemplate)
-	if err != nil {
-		return "", fmt.Errorf("template parse error: %w", err)
-	}
-
-	buff := bytes.NewBuffer([]byte{})
-
-	body := map[string]interface{}{"PullRequests": prs}
-
-	if err := tmpl.Execute(buff, body); err != nil {
-		return "", fmt.Errorf("template execute error: %w", err)
-	}
-	return buff.String(), nil
 }
