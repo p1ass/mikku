@@ -15,8 +15,8 @@ type Config struct {
 	DockerImageName    string `envconfig:"MIKKU_DOCKER_IMAGE_NAME"`
 }
 
-// ReadConfig reads config values from the environment variables
-func ReadConfig() (*Config, error) {
+// readConfig reads config values from the environment variables
+func readConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := envconfig.Process("", cfg); err != nil {
 		return nil, fmt.Errorf("failed to read environment variables: %w", err)

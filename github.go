@@ -17,17 +17,17 @@ const (
 )
 
 var (
-	// ErrReleaseNotFound represents error that the release does not found
-	ErrReleaseNotFound = errors.New("release not found")
+	// errReleaseNotFound represents error that the release does not found
+	errReleaseNotFound = errors.New("release not found")
 
-	errFileNotFound       = errors.New("file not found")
+	errFileORRepoNotFound = errors.New("file or repository not found")
 	errContentIsDirectory = errors.New("content is directory, not file")
 )
 
 //go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
 
-// GitHubRepositoriesClient is a interface for calling GitHub API about repositories
-type GitHubRepositoriesClient interface {
+// gitHubRepositoriesClient is a interface for calling GitHub API about repositories
+type gitHubRepositoriesClient interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 
@@ -35,29 +35,29 @@ type GitHubRepositoriesClient interface {
 	UpdateFile(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
 }
 
-// GitHubPullRequestsClient is a interface for calling GitHub API about pull requests
-type GitHubPullRequestsClient interface {
+// gitHubPullRequestsClient is a interface for calling GitHub API about pull requests
+type gitHubPullRequestsClient interface {
 	List(ctx context.Context, owner string, repo string, opt *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 
 	Create(ctx context.Context, owner string, repo string, pull *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
 }
 
-type GitHubGitClient interface {
+type gitHubGitClient interface {
 	GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error)
 	CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error)
 }
 
-// GitHubService handles application logic using GitHub API
-type GitHubService struct {
+// githubClient handles application logic using GitHub API
+type githubClient struct {
 	owner   string
-	repoCli GitHubRepositoriesClient
-	prCli   GitHubPullRequestsClient
-	gitCli  GitHubGitClient
+	repoCli gitHubRepositoriesClient
+	prCli   gitHubPullRequestsClient
+	gitCli  gitHubGitClient
 }
 
-// NewGitHubService returns a pointer of GitHubService
+// newGitHubClientUsingEnv returns a pointer of githubClient
 // If accessToken is empty, you can't make any changes to the repository
-func NewGitHubService(owner, accessToken string) *GitHubService {
+func newGitHubClientUsingEnv(owner, accessToken string) *githubClient {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: accessToken,
@@ -65,11 +65,11 @@ func NewGitHubService(owner, accessToken string) *GitHubService {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	return newGitHubService(owner, client.Repositories, client.PullRequests, client.Git)
+	return newGitHubClient(owner, client.Repositories, client.PullRequests, client.Git)
 }
 
-func newGitHubService(owner string, repoCli GitHubRepositoriesClient, prCli GitHubPullRequestsClient, gitCli GitHubGitClient) *GitHubService {
-	return &GitHubService{
+func newGitHubClient(owner string, repoCli gitHubRepositoriesClient, prCli gitHubPullRequestsClient, gitCli gitHubGitClient) *githubClient {
+	return &githubClient{
 		owner:   owner,
 		repoCli: repoCli,
 		prCli:   prCli,
@@ -77,7 +77,7 @@ func newGitHubService(owner string, repoCli GitHubRepositoriesClient, prCli GitH
 	}
 }
 
-func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, string, error) {
+func (s *githubClient) getLastPublishedAndCurrentTag(repo string) (time.Time, string, error) {
 	after := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
 	tag := ""
 	release, err := s.getLatestRelease(repo)
@@ -85,13 +85,13 @@ func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, s
 		return after, "", fmt.Errorf("get latest release: %w", err)
 	}
 
-	after = release.PublishedAt.Time
+	after = release.GetPublishedAt().Time
 	tag = release.GetTagName()
 	return after, tag, nil
 }
 
-// CreateReleaseByTagName creates GitHub release with a given tag
-func (s *GitHubService) CreateReleaseByTagName(repo, tagName, body string) (*github.RepositoryRelease, error) {
+// createRelease creates GitHub release with a given tag
+func (s *githubClient) createRelease(repo, tagName, body string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
 	release, _, err := s.repoCli.CreateRelease(ctx, s.owner, repo, &github.RepositoryRelease{
 		TagName: github.String(tagName),
@@ -105,19 +105,19 @@ func (s *GitHubService) CreateReleaseByTagName(repo, tagName, body string) (*git
 }
 
 // getLatestRelease gets the latest release
-func (s *GitHubService) getLatestRelease(repo string) (*github.RepositoryRelease, error) {
+func (s *githubClient) getLatestRelease(repo string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
 	release, resp, err := s.repoCli.GetLatestRelease(ctx, s.owner, repo)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return nil, fmt.Errorf("%s: %w", repo, ErrReleaseNotFound)
+			return nil, fmt.Errorf("%s: %w", repo, errReleaseNotFound)
 		}
 		return nil, fmt.Errorf("call getting the latest release API: %w", err)
 	}
 	return release, nil
 }
 
-func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*github.PullRequest, error) {
+func (s *githubClient) getMergedPRsAfter(repo string, after time.Time) ([]*github.PullRequest, error) {
 	opt := &github.PullRequestListOptions{
 		State:       "closed",
 		Base:        baseBranch,
@@ -149,15 +149,15 @@ func (s *GitHubService) getMergedPRsAfter(repo string, after time.Time) ([]*gith
 	return prList, nil
 }
 
-// GetFile fetches the file from GitHub and return content and hash
-func (s *GitHubService) GetFile(repo, filePath string) (content string, hash string, err error) {
+// getFile fetches the file from GitHub and return content and hash
+func (s *githubClient) getFile(repo, filePath string) (content string, hash string, err error) {
 	ctx := context.Background()
 	file, _, resp, err := s.repoCli.GetContents(ctx, s.owner, repo, filePath, &github.RepositoryContentGetOptions{
 		Ref: baseBranch,
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return "", "", fmt.Errorf("%s: %w", filePath, errFileNotFound)
+			return "", "", fmt.Errorf("%s: %w", filePath, errFileORRepoNotFound)
 		}
 		return "", "", fmt.Errorf("call getting contents api: %w", err)
 	}
@@ -175,8 +175,8 @@ func (s *GitHubService) GetFile(repo, filePath string) (content string, hash str
 	return content, hash, nil
 }
 
-// PushFile pushes the updated file
-func (s *GitHubService) PushFile(repo, filePath, branch, commitMessage, commitSHA string, body []byte) error {
+// pushFile pushes the updated file
+func (s *githubClient) pushFile(repo, filePath, branch, commitMessage, commitSHA string, body []byte) error {
 	ctx := context.Background()
 	_, _, err := s.repoCli.UpdateFile(ctx, s.owner, repo, filePath, &github.RepositoryContentFileOptions{
 		Message: github.String(commitMessage),
@@ -195,8 +195,8 @@ func (s *GitHubService) PushFile(repo, filePath, branch, commitMessage, commitSH
 	return nil
 }
 
-// CreatePullRequest creates a pull request
-func (s *GitHubService) CreatePullRequest(repo, branch, title, body string) (*github.PullRequest, error) {
+// createPullRequest creates a pull request
+func (s *githubClient) createPullRequest(repo, branch, title, body string) (*github.PullRequest, error) {
 	ctx := context.Background()
 	pr, _, err := s.prCli.Create(ctx, s.owner, repo, &github.NewPullRequest{
 		Title: github.String(title),
@@ -211,8 +211,8 @@ func (s *GitHubService) CreatePullRequest(repo, branch, title, body string) (*gi
 	return pr, nil
 }
 
-// CreateBranch creates new branch
-func (s *GitHubService) CreateBranch(repo, branch string) error {
+// createBranch creates new branch
+func (s *githubClient) createBranch(repo, branch string) error {
 	ctx := context.Background()
 	ref, _, err := s.gitCli.GetRef(ctx, s.owner, repo, fmt.Sprintf("heads/%s", baseBranch))
 	if err != nil {

@@ -36,11 +36,11 @@ func determineNewTag(version string, currentTag string) (string, error) {
 			return "", errInvalidSemanticVersioningTag
 		}
 		bumpTyp := strToBumpType(version)
-		if newTag, err := bumpVersion(currentTag, bumpTyp); err != nil {
+		newTag, err := bumpVersion(currentTag, bumpTyp)
+		if err != nil {
 			return "", fmt.Errorf("bump version: %w", err)
-		} else {
-			return newTag, nil
 		}
+		return newTag, nil
 	}
 
 	if !validSemver(version) {

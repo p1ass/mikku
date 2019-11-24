@@ -1,22 +1,10 @@
 package mikku
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
-	"text/template"
-
-	"github.com/google/go-github/v28/github"
-)
-
-const (
-	releaseBodyTemplate = `
-## Changelog
-{{ range $i, $pr := .PullRequests }}
-- {{ $pr.Title }} (#{{ $pr.Number }}) by @{{ $pr.User.Login }}{{ end }}
-`
 )
 
 var (
@@ -25,18 +13,18 @@ var (
 
 // Release is the entry point of `mikku release` command
 func Release(repo string, version string) error {
-	cfg, err := ReadConfig()
+	cfg, err := readConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
 	}
 
-	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
+	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
 	isFirstRelease := false
 
 	after, currentTag, err := svc.getLastPublishedAndCurrentTag(repo)
 	if err != nil {
-		if errors.Is(err, ErrReleaseNotFound) {
+		if errors.Is(err, errReleaseNotFound) {
 			isFirstRelease = true
 			_, _ = fmt.Fprintf(os.Stdout, "Release not found. First Release...\n")
 
@@ -63,7 +51,7 @@ func Release(repo string, version string) error {
 		return fmt.Errorf("failed to generate release body: %w", err)
 	}
 
-	newRelease, err := svc.CreateReleaseByTagName(repo, newTag, body)
+	newRelease, err := svc.createRelease(repo, newTag, body)
 	if err != nil {
 		return fmt.Errorf("failed to create release: %w", err)
 	}
@@ -76,70 +64,54 @@ func Release(repo string, version string) error {
 
 // PullRequest is the entry point of `mikku pr` command
 func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error {
-	cfg, err := ReadConfig()
+	cfg, err := readConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
 	}
 
-	svc := NewGitHubService(cfg.GitHubOwner, cfg.GitHubAccessToken)
+	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	manifest, hash, err := svc.GetFile(manifestRepo, pathToManifestFile)
+	manifest, hash, err := svc.getFile(manifestRepo, pathToManifestFile)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
 
-	release, err := svc.getLatestRelease(manifestRepo)
+	release, err := svc.getLatestRelease(repo)
 	if err != nil {
-		if errors.Is(err, ErrReleaseNotFound) {
-			_, _ = fmt.Fprintf(os.Stdout, "Release not found. \n")
-			return fmt.Errorf("failed to get the latest release: %w", err)
-		} else {
-			return fmt.Errorf("failed to get latest release: %w", err)
-		}
+		return fmt.Errorf("failed to get latest release: %w", err)
 	}
 	tag := release.GetTagName()
 
-	currentTag, err := getCurrentTag(manifest, imageName)
+	replacedFile, err := replaceTag(manifest, imageName, tag)
 	if err != nil {
-		return fmt.Errorf("failed to get current tag in yaml file: %w", err)
+		return fmt.Errorf("failed to replace tag: %w", err)
 	}
-	replacedFile := strings.ReplaceAll(manifest, imageName+":"+currentTag, imageName+":"+tag)
 
 	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
-
-	if err := svc.CreateBranch(manifestRepo, branch); err != nil {
+	if err := svc.createBranch(manifestRepo, branch); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	commitMessage := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
-
-	if err := svc.PushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
+	commitMessage := fmt.Sprintf("Bump %s to %s", imageName, tag)
+	if err := svc.pushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
-	title := fmt.Sprintf("bump %s to %s", imageName, tag)
-	body := fmt.Sprintf("bump %s to %s.", imageName, tag)
-	pr, err := svc.CreatePullRequest(manifestRepo, branch, title, body)
+	title := fmt.Sprintf("Bump %s to %s", imageName, tag)
+	body := fmt.Sprintf("Bump %s to %s", imageName, tag)
+	pr, err := svc.createPullRequest(manifestRepo, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s", pr.GetHTMLURL())
+	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s\n", pr.GetHTMLURL())
 
 	return nil
 }
 
-func generateReleaseBody(prs []*github.PullRequest) (string, error) {
-	tmpl, err := template.New("body").Parse(releaseBodyTemplate)
+func replaceTag(manifest, imageName, tag string) (string, error) {
+	currentTag, err := getCurrentTag(manifest, imageName)
 	if err != nil {
-		return "", fmt.Errorf("template parse error: %w", err)
+		return "", fmt.Errorf("get current tag in yaml file: %w", err)
 	}
-
-	buff := bytes.NewBuffer([]byte{})
-
-	body := map[string]interface{}{"PullRequests": prs}
-
-	if err := tmpl.Execute(buff, body); err != nil {
-		return "", fmt.Errorf("template execute error: %w", err)
-	}
-	return buff.String(), nil
+	return strings.ReplaceAll(manifest, imageName+":"+currentTag, imageName+":"+tag), nil
 }
