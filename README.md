@@ -24,8 +24,7 @@ $ export MIKKU_GITHUB_OWNER=[GITHUB_OWNER_NAME]
 When the latest tag name is `v1.2.3`, the below command bump to `v1.2.4`.
 
 ```bash
-$ REPO=sample-repository
-$ mikku release ${REPO} patch
+$ mikku release sample-repository patch
 ```
 
 Note that `mikku` doesn't build and push a docker image, so you have to do it using CI service such as CircleCI.
@@ -39,8 +38,7 @@ $ export MIKKU_MANIFEST_REPOSITORY=sample-manifest-repository
 $ export MIKKU_MANIFEST_FILEPATH=manifests/{{.Repository}}/deployment.yml
 $ export MIKKU_DOCKER_IMAGE_NAME={{.Owner}}/{{.Repository}}
 
-$ REPO=sample-repository
-$ mikku pr ${REPO}
+$ mikku pr sample-repository
 ```
 
 ## Commands
@@ -60,11 +58,10 @@ If you use `major`, `minor`, or `patch`, the latest tag name must be compatible 
 ##### Examples
 
 ```bash
-$ REPO=sample-repository
-$ mikku release ${REPO} v1.0.0
-$ mikku release ${REPO} patch # v1.0.0 → v1.0.1
-$ mikku release ${REPO} minor # v1.0.1 → v1.1.0
-$ mikku release ${REPO} major # v1.1.0 → v2.0.0
+$ mikku release sample-repository v1.0.0
+$ mikku release sample-repository patch # v1.0.0 → v1.0.1
+$ mikku release sample-repository minor # v1.0.1 → v1.1.0
+$ mikku release sample-repository major # v1.1.0 → v2.0.0
 ```
 
 #### `mikku pr [-m <manifest-repository>] [-p <path-to-manifest-file>]  [-i <image-name>] <repository>`
@@ -83,7 +80,7 @@ spec:
 ##### Options
 
 - `-m`
-    - Specify a repository exisiting Kubernetes manifest file.
+    - Specify a repository existing Kubernetes manifest file.
     - Optional. 
     - Default : `MIKKU_MANIFEST_REPOSITORY` environment variable.
 
@@ -110,23 +107,23 @@ spec:
 ```bash
 $ export MIKKU_GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
 $ export MIKKU_GITHUB_OWNER=p1ass
+
+# Set environment variables or add options when executing commands
 $ export MIKKU_MANIFEST_REPOSITORY=manifest-repository
 $ export MIKKU_MANIFEST_FILEPATH=manifests/{{.Repository}}/deployment.yml
 $ export MIKKU_DOCKER_IMAGE_NAME=asia.gcr.io/{{.Owner}}/{{.Repository}}
 
-$ REPO=sample-repository
-
 # The most simple case
 # When the latest tag name is `v1.0.1`,
 # replace p1ass/sample-repository:v1.0.0 existing in manifest-repository to p1ass/sample-repository:v1.0.1.
-$ mikku pr ${REPO}
+$ mikku pr sample-repository
 
 # When the manifest file exists in the same repository
-$ mikku pr -m ${REPO} ${REPO}
+$ mikku pr -m sample-repository sample-repository
 
 # Specify Kubernetes manifest file
-$ mikku pr -p {{.Owner}}/{{.Repository}}/deployment.yml ${REPO}
+$ mikku pr -p {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
 
 # Specify docker image name
-$ mikku pr -i docker.p1ass.com/{{.Repository}} ${REPO} 
+$ mikku pr -i docker.p1ass.com/{{.Repository}} sample-repository
 ```

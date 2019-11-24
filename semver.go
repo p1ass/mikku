@@ -28,26 +28,26 @@ const (
 
 var semVerReg = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.([0-9]+)`)
 
-// determineNewTag bump version if the given version is major, minor, or patch
+// determineNewTag bump version if the typORVer is major, minor, or patch
 // otherwise, use the given version without change
-func determineNewTag(version string, currentTag string) (string, error) {
-	if version == "major" || version == "minor" || version == "patch" {
-		if !validSemver(currentTag) {
+func determineNewTag(currentTag string, typORVer string) (string, error) {
+	bt := strToBumpType(typORVer)
+	if bt == version {
+		if !validSemver(typORVer) {
 			return "", errInvalidSemanticVersioningTag
 		}
-		bumpTyp := strToBumpType(version)
-		newTag, err := bumpVersion(currentTag, bumpTyp)
-		if err != nil {
-			return "", fmt.Errorf("bump version: %w", err)
-		}
-		return newTag, nil
+		return typORVer, nil
 	}
 
-	if !validSemver(version) {
+	if !validSemver(currentTag) {
 		return "", errInvalidSemanticVersioningTag
 	}
 
-	return version, nil
+	newTag, err := bumpVersion(currentTag, bt)
+	if err != nil {
+		return "", fmt.Errorf("bump version: %w", err)
+	}
+	return newTag, nil
 }
 
 func validSemver(ver string) bool {
@@ -63,7 +63,7 @@ func strToBumpType(str string) bumpType {
 	case "patch":
 		return patch
 	default:
-		return 0
+		return version
 	}
 }
 
