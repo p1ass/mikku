@@ -85,7 +85,7 @@ func (s *GitHubService) getLastPublishedAndCurrentTag(repo string) (time.Time, s
 		return after, "", fmt.Errorf("get latest release: %w", err)
 	}
 
-	after = release.PublishedAt.Time
+	after = release.GetPublishedAt().Time
 	tag = release.GetTagName()
 	return after, tag, nil
 }
