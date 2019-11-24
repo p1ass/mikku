@@ -416,7 +416,7 @@ func TestGitHubService_GetFile(t *testing.T) {
 			},
 			wantContent: "",
 			wantHash:    "",
-			wantErr:     errFileNotFound,
+			wantErr:     errFileORRepoNotFound,
 		},
 		{
 			name:     "unknown error",

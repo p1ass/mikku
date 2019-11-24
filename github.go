@@ -20,7 +20,7 @@ var (
 	// ErrReleaseNotFound represents error that the release does not found
 	ErrReleaseNotFound = errors.New("release not found")
 
-	errFileNotFound       = errors.New("file not found")
+	errFileORRepoNotFound = errors.New("file or repository not found")
 	errContentIsDirectory = errors.New("content is directory, not file")
 )
 
@@ -157,7 +157,7 @@ func (s *GitHubService) GetFile(repo, filePath string) (content string, hash str
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return "", "", fmt.Errorf("%s: %w", filePath, errFileNotFound)
+			return "", "", fmt.Errorf("%s: %w", filePath, errFileORRepoNotFound)
 		}
 		return "", "", fmt.Errorf("call getting contents api: %w", err)
 	}
