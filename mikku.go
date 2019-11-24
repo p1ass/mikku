@@ -12,7 +12,7 @@ var (
 )
 
 // Release is the entry point of `mikku release` command
-func Release(repo string, version string) error {
+func Release(repo string, bumpTyp string) error {
 	cfg, err := readConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
@@ -33,7 +33,7 @@ func Release(repo string, version string) error {
 		}
 	}
 
-	newTag, err := determineNewTag(version, currentTag)
+	newTag, err := determineNewTag(currentTag, bumpTyp)
 	if err != nil {
 		if errors.Is(err, errInvalidSemanticVersioningTag) && isFirstRelease {
 			_, _ = fmt.Fprintf(os.Stderr, "ERROR: You must specify the tag because of the first release.\n")

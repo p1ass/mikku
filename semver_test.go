@@ -182,3 +182,56 @@ func Test_strsToInts(t *testing.T) {
 		})
 	}
 }
+
+func Test_determineNewTag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		currentTag string
+		typORVer   string
+		want       string
+		wantErr    bool
+	}{
+		{
+			name:       "patch and valid tag",
+			currentTag: "v1.0.0",
+			typORVer:   "patch",
+			want:       "v1.0.1",
+			wantErr:    false,
+		},
+		{
+			name:       "patch and invalid tag",
+			currentTag: "1.0.0",
+			typORVer:   "patch",
+			want:       "",
+			wantErr:    true,
+		},
+		{
+			name:       "specify version and valid tag",
+			currentTag: "",
+			typORVer:   "v1.0.0",
+			want:       "v1.0.0",
+			wantErr:    false,
+		},
+		{
+			name:       "specify version and invalid tag",
+			currentTag: "",
+			typORVer:   "1.0.0",
+			want:       "",
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := determineNewTag(tt.currentTag, tt.typORVer)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("determineNewTag() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("determineNewTag() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
