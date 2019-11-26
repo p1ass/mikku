@@ -69,9 +69,19 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 		return fmt.Errorf("release: %w", err)
 	}
 
+	prCfg, err := readPRConfig()
+	if err != nil {
+		return fmt.Errorf("release: %w", err)
+	}
+	prCfg.overrideConfig(manifestRepo, pathToManifestFile, imageName)
+
+	if err := prCfg.validate(); err != nil {
+		return fmt.Errorf("invalid config: %w", err)
+	}
+
 	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
 
-	manifest, hash, err := svc.getFile(manifestRepo, pathToManifestFile)
+	manifest, hash, err := svc.getFile(prCfg.ManifestRepository, prCfg.ManifestFilepath)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest file: %w", err)
 	}
@@ -82,24 +92,24 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	}
 	tag := release.GetTagName()
 
-	replacedFile, err := replaceTag(manifest, imageName, tag)
+	replacedFile, err := replaceTag(manifest, prCfg.DockerImageName, tag)
 	if err != nil {
 		return fmt.Errorf("failed to replace tag: %w", err)
 	}
 
-	branch := fmt.Sprintf("bump-%s-to-%s", imageName, tag)
-	if err := svc.createBranch(manifestRepo, branch); err != nil {
+	branch := fmt.Sprintf("bump-%s-to-%s", prCfg.DockerImageName, tag)
+	if err := svc.createBranch(prCfg.ManifestRepository, branch); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	commitMessage := fmt.Sprintf("Bump %s to %s", imageName, tag)
-	if err := svc.pushFile(manifestRepo, pathToManifestFile, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
+	commitMessage := fmt.Sprintf("Bump %s to %s", prCfg.DockerImageName, tag)
+	if err := svc.pushFile(prCfg.ManifestRepository, prCfg.ManifestFilepath, branch, commitMessage, hash, []byte(replacedFile)); err != nil {
 		return fmt.Errorf("failed to push updated the manifest file: %w", err)
 	}
 
-	title := fmt.Sprintf("Bump %s to %s", imageName, tag)
-	body := fmt.Sprintf("Bump %s to %s", imageName, tag)
-	pr, err := svc.createPullRequest(manifestRepo, branch, title, body)
+	title := fmt.Sprintf("Bump %s to %s", prCfg.DockerImageName, tag)
+	body := fmt.Sprintf("Bump %s to %s", prCfg.DockerImageName, tag)
+	pr, err := svc.createPullRequest(prCfg.ManifestRepository, branch, title, body)
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
