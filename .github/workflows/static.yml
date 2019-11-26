@@ -1,0 +1,23 @@
+name: Static check
+on: pull_request
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: grandcolline/golang-github-actions@v1.1.0
+        with:
+          run: fmt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: grandcolline/golang-github-actions@v1.1.0
+        with:
+          run: lint
+          token: ${{ secrets.GITHUB_TOKEN }}
