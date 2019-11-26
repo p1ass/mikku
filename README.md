@@ -1,5 +1,10 @@
 # mikku
 
+[![Actions Status](https://github.com/p1ass/mikku/workflows/Go%20tests/badge.svg)](https://github.com/p1ass/mikku/actions)
+[![Actions Status](https://github.com/p1ass/mikku/workflows/Static%20check/badge.svg)](https://github.com/p1ass/mikku/actions)
+[![GoDoc](https://godoc.org/github.com/p1ass/mikku?status.svg)](https://godoc.org/github.com/p1ass/mikku)
+[![license](https://img.shields.io/badge/license-MIT-4183c4.svg)](https://github.com/p1ass/mikku/blob/master/LICENSE)
+
 `mikku` is a CLI command tool to create GitHub release and PR supporting Semantic Versioning and Kubernetes.
 
 ## Getting Started
