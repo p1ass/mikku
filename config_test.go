@@ -302,3 +302,93 @@ func TestPRConfig_validate(t *testing.T) {
 		})
 	}
 }
+
+func TestPRConfig_embedRepoInfo(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		ManifestRepository string
+		ManifestFilepath   string
+		DockerImageName    string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		owner   string
+		repo    string
+		want    *PRConfig
+		wantErr bool
+	}{
+		{
+			name: "parse all fields",
+			fields: fields{
+				ManifestFilepath: "{{.Owner}}/{{.Repository}}/manifest.yml",
+				DockerImageName:  "{{.Owner}}/{{.Repository}}",
+			},
+			owner: "test-owner",
+			repo:  "test-repo",
+			want: &PRConfig{
+				ManifestFilepath: "test-owner/test-repo/manifest.yml",
+				DockerImageName:  "test-owner/test-repo",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &PRConfig{
+				ManifestRepository: tt.fields.ManifestRepository,
+				ManifestFilepath:   tt.fields.ManifestFilepath,
+				DockerImageName:    tt.fields.DockerImageName,
+			}
+
+			if err := cfg.embedRepoInfo(tt.owner, tt.repo); (err != nil) != tt.wantErr {
+				t.Errorf("PRConfig.embedRepoInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !cmp.Equal(cfg, tt.want) {
+				t.Errorf("PRConfig.embedRepoInfo() cfg = %v, want %v", cfg, tt.want)
+			}
+		})
+	}
+}
+
+func Test_parse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		text    string
+		info    map[string]interface{}
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "no parsed field",
+			text:    "test-text",
+			info:    map[string]interface{}{"Owner": "test-owner"},
+			want:    "test-text",
+			wantErr: false,
+		},
+		{
+			name:    "parse field",
+			text:    "{{.Owner}}",
+			info:    map[string]interface{}{"Owner": "test-owner"},
+			want:    "test-owner",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parse(tt.text, tt.info)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

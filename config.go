@@ -1,8 +1,10 @@
 package mikku
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"text/template"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -65,6 +67,38 @@ func (cfg *PRConfig) validate() error {
 		return errEmptyDockerImageName
 	}
 	return nil
+}
+
+func (cfg *PRConfig) embedRepoInfo(owner, repo string) error {
+	info := map[string]interface{}{"Owner": owner, "Repository": repo}
+
+	embedManifestFilepath, err := parse(cfg.ManifestFilepath, info)
+	if err != nil {
+		return fmt.Errorf("parse manifest filepath: %w", err)
+	}
+	cfg.ManifestFilepath = embedManifestFilepath
+
+	embedDockerImageName, err := parse(cfg.DockerImageName, info)
+	if err != nil {
+		return fmt.Errorf("parse docker image name: %w", err)
+	}
+	cfg.DockerImageName = embedDockerImageName
+
+	return nil
+}
+
+func parse(text string, info map[string]interface{}) (string, error) {
+	tmpl, err := template.New("text").Parse(text)
+	if err != nil {
+		return "", fmt.Errorf("template parse error: %w", err)
+	}
+
+	buff := bytes.NewBuffer(make([]byte, 0, 20))
+	if err := tmpl.Execute(buff, info); err != nil {
+		return "", fmt.Errorf("template execute error: %w", err)
+	}
+
+	return buff.String(), nil
 }
 
 func readConfig() (*Config, error) {
