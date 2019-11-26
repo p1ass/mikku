@@ -68,7 +68,9 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
 	}
-
+	if err := cfg.validate(); err != nil {
+		return fmt.Errorf("invalid config: %w", err)
+	}
 	prCfg, err := readPRConfig()
 	if err != nil {
 		return fmt.Errorf("release: %w", err)
@@ -76,7 +78,7 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	prCfg.overrideConfig(manifestRepo, pathToManifestFile, imageName)
 
 	if err := prCfg.validate(); err != nil {
-		return fmt.Errorf("invalid config: %w", err)
+		return fmt.Errorf("invalid pr config: %w", err)
 	}
 
 	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
