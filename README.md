@@ -87,12 +87,12 @@ spec:
 
 ##### Options
 
-- `-m`
+- `--manifest -m`
     - Specify a repository existing Kubernetes manifest file.
     - Optional. 
     - Default : `MIKKU_MANIFEST_REPOSITORY` environment variable.
 
-- `-p` 
+- `--path -p` 
 	- File path where the target docker image is written. 
     - Optional. 
     - Default : `MIKKU_MANIFEST_FILEPATH` environment variable.
@@ -100,7 +100,7 @@ spec:
         - Support variable : `{{.Owner}}`, `{{.Repository}}`
     - Ex. `manifests/{{.Repository}}/deployment.yml`
 
-- `-i`
+- `--image -i`
 	- Docker image name.
 	- Optional. 
     - Default : `MIKKU_DOCKER_IMAGE_NAME` environment variable.
@@ -135,3 +135,21 @@ $ mikku pr -p {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
 # Specify docker image name
 $ mikku pr -i docker.p1ass.com/{{.Repository}} sample-repository
 ```
+
+## For developers
+
+### Build
+
+```bash
+$ go build -o mikku -ldflags "-X github.com/p1ass/mikku.mikkuVersion=v0.1.0"  cmd/mikku/main.go
+```
+
+### Tests
+
+```bash
+go test -v ./...
+```
+
+## LICENCE
+
+MIT
