@@ -221,7 +221,7 @@ func (s *githubClient) createBranch(repo, branch string) error {
 
 	ref.Ref = github.String("refs/heads/" + branch)
 	if _, _, err := s.gitCli.CreateRef(ctx, s.owner, repo, ref); err != nil {
-		return fmt.Errorf("call creating refrence api: %w", err)
+		return fmt.Errorf("call creating reference api: %w", err)
 	}
 
 	return nil
