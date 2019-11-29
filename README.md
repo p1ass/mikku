@@ -111,12 +111,12 @@ spec:
 
 If you don't set environment variables, you must add options when executing commands.
 
-- `--manifest -m`
+- `--manifest, -m`
     - Specify a repository existing Kubernetes manifest file.
     - Optional. 
     - Default : `MIKKU_MANIFEST_REPOSITORY` environment variable.
 
-- `--path -p` 
+- `--path, -p` 
 	- File path where the target docker image is written. 
     - Optional. 
     - Default : `MIKKU_MANIFEST_FILEPATH` environment variable.
@@ -124,7 +124,7 @@ If you don't set environment variables, you must add options when executing comm
         - Support variable : `{{.Owner}}`, `{{.Repository}}`
     - Ex. `manifests/{{.Repository}}/deployment.yml`
 
-- `--image -i`
+- `--image, -i`
 	- Docker image name.
 	- Optional. 
     - Default : `MIKKU_DOCKER_IMAGE_NAME` environment variable.
@@ -151,13 +151,13 @@ $ export MIKKU_DOCKER_IMAGE_NAME=asia.gcr.io/{{.Owner}}/{{.Repository}}
 $ mikku pr sample-repository
 
 # Override manifest repository
-$ mikku pr -m other-manifest-repo sample-repository
+$ mikku pr --manifest other-manifest-repo sample-repository
 
 # Override Kubernetes manifest file
-$ mikku pr -p {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
+$ mikku pr --path {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
 
 # Override docker image name
-$ mikku pr -i docker.example.com/{{.Repository}} sample-repository
+$ mikku pr --image docker.example.com/{{.Repository}} sample-repository
 ```
 
 ## For developers
