@@ -2,7 +2,6 @@ package mikku
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/urfave/cli/v2"
 )
@@ -57,15 +56,50 @@ var commandPullRequest = &cli.Command{
 }
 
 func doRelease(c *cli.Context) error {
+	if c.Args().Len() == 0 {
+		_ = cli.ShowCommandHelp(c, "release")
+		return nil
+	}
+
+	if c.Args().Len() != 2 {
+		return fmt.Errorf("Two arguments are required: reposiotry and bump type")
+	}
+
+	repo := c.Args().Get(0)
+	bumpTyp := c.Args().Get(1)
+
+	if err := Release(repo, bumpTyp); err != nil {
+		return fmt.Errorf("Failed to execute release: %v", err)
+	}
+
 	return nil
 }
 
 func doPullRequest(c *cli.Context) error {
+	if c.Args().Len() == 0 {
+		_ = cli.ShowCommandHelp(c, "pr")
+		return nil
+	}
+
+	if c.Args().Len() != 1 {
+		return fmt.Errorf("One argument is required: repository")
+	}
+
+	repo := c.Args().Get(0)
+	manifestRepo := c.String("manifest")
+	pathToManifestFile := c.String("path")
+	image := c.String("image")
+
+	if err := PullRequest(repo, manifestRepo, pathToManifestFile, image); err != nil {
+		return fmt.Errorf("Failed to execute release: %v", err)
+
+	}
+
 	return nil
 }
 
 // Run runs commands depending on the given argument
-func Run(args []string) {
+func Run(args []string) error {
 	app := &cli.App{
 		Name:  "mikku",
 		Usage: "Bump Semantic Versioning tag, create GitHub release and update Kubernetes manifest file",
@@ -83,7 +117,7 @@ func Run(args []string) {
 	}
 
 	if err := app.Run(args); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return fmt.Errorf("ERROR: %w", err)
 	}
+	return nil
 }
