@@ -67,7 +67,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 					TagName: github.String("v1.0.0"),
 					Name:    github.String("v1.0.0"),
 					Body:    github.String("## v1.0.0"),
-				}).Return(nil, nil, fmt.Errorf("error has occured"))
+				}).Return(nil, nil, fmt.Errorf("error has occurred"))
 				return cli
 			},
 			want:    nil,
