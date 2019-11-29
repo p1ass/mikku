@@ -6,7 +6,12 @@
 [![license](https://img.shields.io/badge/license-MIT-4183c4.svg)](https://github.com/p1ass/mikku/blob/master/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/p1ass/mikku)](https://goreportcard.com/report/github.com/p1ass/mikku)
 
-`mikku` is a CLI command tool to create GitHub release and PR supporting Semantic Versioning and Kubernetes.
+`mikku` is a CLI command tool to help version management and manifest update in Kubernetes.
+
+## Features
+- Create GitHub releases with bumping Semantic Versioning tag 
+- Send pull requests which update docker image tag.
+- Support `{{.Owner}}` and  `{{.Repository}}` placeholder in environment variables and command-line options when setting configs.
 
 ## Screenshots
 
@@ -104,12 +109,14 @@ spec:
 
 ##### Options
 
-- `--manifest -m`
+If you don't set environment variables, you must add options when executing commands.
+
+- `--manifest, -m`
     - Specify a repository existing Kubernetes manifest file.
     - Optional. 
     - Default : `MIKKU_MANIFEST_REPOSITORY` environment variable.
 
-- `--path -p` 
+- `--path, -p` 
 	- File path where the target docker image is written. 
     - Optional. 
     - Default : `MIKKU_MANIFEST_FILEPATH` environment variable.
@@ -117,7 +124,7 @@ spec:
         - Support variable : `{{.Owner}}`, `{{.Repository}}`
     - Ex. `manifests/{{.Repository}}/deployment.yml`
 
-- `--image -i`
+- `--image, -i`
 	- Docker image name.
 	- Optional. 
     - Default : `MIKKU_DOCKER_IMAGE_NAME` environment variable.
@@ -133,7 +140,7 @@ spec:
 $ export MIKKU_GITHUB_ACCESS_TOKEN=[YOUR_ACCESS_TOKEN]
 $ export MIKKU_GITHUB_OWNER=p1ass
 
-# Set environment variables or add options when executing commands
+# You need to set environment variables. Otherwise, add options when executing commands
 $ export MIKKU_MANIFEST_REPOSITORY=manifest-repository
 $ export MIKKU_MANIFEST_FILEPATH=manifests/{{.Repository}}/deployment.yml
 $ export MIKKU_DOCKER_IMAGE_NAME=asia.gcr.io/{{.Owner}}/{{.Repository}}
@@ -143,14 +150,14 @@ $ export MIKKU_DOCKER_IMAGE_NAME=asia.gcr.io/{{.Owner}}/{{.Repository}}
 # replace p1ass/sample-repository:v1.0.0 existing in manifest-repository to p1ass/sample-repository:v1.0.1.
 $ mikku pr sample-repository
 
-# When the manifest file exists in the same repository
-$ mikku pr -m sample-repository sample-repository
+# Override manifest repository
+$ mikku pr --manifest other-manifest-repo sample-repository
 
-# Specify Kubernetes manifest file
-$ mikku pr -p {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
+# Override Kubernetes manifest file
+$ mikku pr --path {{.Owner}}/{{.Repository}}/deployment.yml sample-repository
 
-# Specify docker image name
-$ mikku pr -i docker.p1ass.com/{{.Repository}} sample-repository
+# Override docker image name
+$ mikku pr --image docker.example.com/{{.Repository}} sample-repository
 ```
 
 ## For developers
