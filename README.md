@@ -10,6 +10,29 @@
 
 `mikku` is a CLI command tool to create GitHub release and PR supporting Semantic Versioning and Kubernetes.
 
+## Screenshots
+
+### Release
+
+![release](images/release.png)
+
+![changelog](images/changelog.png)
+
+
+### PullRequest
+
+![pull request](images/pr.png)
+
+![diff](images/diff.png)
+	
+
+## Installation
+
+```bash
+$ GO111MODULE=off go get github.com/p1ass/mikku/cmd/mikku
+$ mikku --help
+```
+
 ## Getting Started
 
 ### Prepare GitHub access token

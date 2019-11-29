@@ -91,7 +91,7 @@ func doPullRequest(c *cli.Context) error {
 	image := c.String("image")
 
 	if err := PullRequest(repo, manifestRepo, pathToManifestFile, image); err != nil {
-		return fmt.Errorf("Failed to execute release: %v", err)
+		return fmt.Errorf("Failed to execute pr: %v", err)
 
 	}
 

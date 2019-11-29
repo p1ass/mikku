@@ -119,7 +119,7 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 	if err != nil {
 		return fmt.Errorf("failed to create a pull request: %w", err)
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "Pull request created. %s\n", pr.GetHTMLURL())
+	_, _ = fmt.Fprintf(os.Stdout, "Pull request created.\n %s\n", pr.GetHTMLURL())
 
 	return nil
 }
