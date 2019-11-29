@@ -36,7 +36,7 @@ func Release(repo string, bumpTyp string) error {
 	newTag, err := determineNewTag(currentTag, bumpTyp)
 	if err != nil {
 		if errors.Is(err, errInvalidSemanticVersioningTag) && isFirstRelease {
-			_, _ = fmt.Fprintf(os.Stderr, "ERROR: You must specify the tag because of the first release.\n")
+			return fmt.Errorf("you must specify the tag because of the first release")
 		}
 		return fmt.Errorf("failed to determine new tag: %w", err)
 	}
@@ -79,6 +79,10 @@ func PullRequest(repo, manifestRepo, pathToManifestFile, imageName string) error
 
 	if err := prCfg.validate(); err != nil {
 		return fmt.Errorf("invalid pr config: %w", err)
+	}
+
+	if err := prCfg.embedRepoInfo(cfg.GitHubOwner, repo); err != nil {
+		return fmt.Errorf("embed owner and repository info: %w", err)
 	}
 
 	svc := newGitHubClientUsingEnv(cfg.GitHubOwner, cfg.GitHubAccessToken)
