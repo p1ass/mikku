@@ -6,30 +6,18 @@
 [![license](https://img.shields.io/badge/license-MIT-4183c4.svg)](https://github.com/p1ass/mikku/blob/master/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/p1ass/mikku)](https://goreportcard.com/report/github.com/p1ass/mikku)
 
-`mikku` is a CLI command tool to help version management and manifest update in Kubernetes.
+`mikku` is a CLI tool to help version management and Kubernetes manifest updates.
 
 ## Features
 - Create GitHub releases with bumping Semantic Versioning tag 
 - Send pull requests which update docker image tag.
 - Support `{{.Owner}}` and  `{{.Repository}}` placeholder in environment variables and command-line options when setting configs.
-
-## Screenshots
-
-### Release
-
-![changelog](images/changelog.png)
-
-
-### PullRequest
-
-![diff](images/diff.png)
 	
-
 ## Installation
 
 ### From GitHub release
 
-If you use Windows or Linux, you use `windows_amd64` or `linux_amd64` instead of `darwin_amd64`.
+If you use Windows or Linux, replace `windows_amd64` or `linux_amd64` instead of `darwin_amd64`.
 
 ```bash
 $ TAG=0.2.0
@@ -37,6 +25,7 @@ $ curl -O -L https://github.com/p1ass/mikku/releases/download/v${TAG}/mikku_${TA
 $ tar -zxvf mikku_${TAG}_darwin_amd64.tar.gz
 $ chmod a+x mikku
 $ mv mikku /usr/local/bin/mikku
+$ mikku --help
 ```
 
 
@@ -79,7 +68,7 @@ Note that `mikku` doesn't build and push a docker image, so you have to do it us
 
 ### Create a pull request updating docker image tag in Kubernetes manifest file
 
-Update image tag in Kubernetes manifest file existing in `MIKKU_MANIFEST_REPOSITORY` to the latest version.
+Update image tag in Kubernetes manifest file to the latest version.
 ```bash
 $ export MIKKU_MANIFEST_REPOSITORY=sample-manifest-repository
 $ export MIKKU_MANIFEST_FILEPATH=manifests/{{.Repository}}/deployment.yml
@@ -87,6 +76,35 @@ $ export MIKKU_DOCKER_IMAGE_NAME={{.Owner}}/{{.Repository}}
 
 $ mikku pr sample-repository
 ```
+
+```yaml
+spec:
+    containers:
+    - name: sample-repository-container
+        image: p1ass/sample-repository:v1.0.0
+        ↓ Replace
+        image: p1ass/sample-repository:v1.0.1
+```
+
+
+## Screenshots
+
+### Release
+
+```bash
+$ mikku release sample-repository v0.1.1
+```
+
+![changelog](images/changelog.png)
+
+
+### PullRequest
+
+```bash
+$ mikku pr memoito-server
+```
+
+![diff](images/diff.png)
 
 ## Commands
 
@@ -113,16 +131,8 @@ $ mikku release sample-repository major # v1.1.0 → v2.0.0
 
 #### `mikku pr [-m <manifest-repository>] [-p <path-to-manifest-file>]  [-i <image-name>] <repository>`
 
-Create a pull request updating Docker image tag written in Kubernetes manifest file as below:
+Create a pull request updating Docker image tag written in Kubernetes manifest file.
 
-```yaml
-spec:
-    containers:
-    - name: sample-repository-container
-        image: p1ass/sample-repository:v1.0.0
-        ↓ Replace
-        image: p1ass/sample-repository:v1.0.1
-```
 
 ##### Options
 
