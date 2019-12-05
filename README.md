@@ -27,6 +27,23 @@
 
 ## Installation
 
+### From GitHub release
+
+If you use Windows or Linux, you use `windows_amd64` or `linux_d64` instead of `darwin_amd64`.
+
+```bash
+$ TAG=0.2.0
+$ curl -O -L https://github.com/p1ass/mikku/releases/download/v${TAG}/mikku_${TAG}_darwin_amd64.tar.gz
+$ tar -zxvf mikku_${TAG}_darwin_amd64.tar.gz
+$ chmod a+x mikku
+$ mv mikku /usr/local/bin/mikku
+```
+
+
+Binaries are available on GitHub releases. [p1ass/mikku/releases](https://github.com/p1ass/mikku/releases)
+
+### go get
+
 ```bash
 $ GO111MODULE=off go get github.com/p1ass/mikku/cmd/mikku
 $ mikku --help
