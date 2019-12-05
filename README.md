@@ -29,7 +29,7 @@
 
 ### From GitHub release
 
-If you use Windows or Linux, you use `windows_amd64` or `linux_d64` instead of `darwin_amd64`.
+If you use Windows or Linux, you use `windows_amd64` or `linux_amd64` instead of `darwin_amd64`.
 
 ```bash
 $ TAG=0.2.0
