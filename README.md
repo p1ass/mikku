@@ -20,9 +20,9 @@
 If you use Windows or Linux, replace `windows_amd64` or `linux_amd64` instead of `darwin_amd64`.
 
 ```bash
-$ TAG=0.2.0
-$ curl -O -L https://github.com/p1ass/mikku/releases/download/v${TAG}/mikku_${TAG}_darwin_amd64.tar.gz
-$ tar -zxvf mikku_${TAG}_darwin_amd64.tar.gz
+$ VERSION=0.2.0
+$ curl -O -L https://github.com/p1ass/mikku/releases/download/v${VERSION}/mikku_${VERSION}_darwin_amd64.tar.gz
+$ tar -zxvf mikku_${VERSION}_darwin_amd64.tar.gz
 $ chmod a+x mikku
 $ mv mikku /usr/local/bin/mikku
 $ mikku --help
