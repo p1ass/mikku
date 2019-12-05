@@ -164,10 +164,9 @@ $ mikku pr --image docker.example.com/{{.Repository}} sample-repository
 
 ### Build
 
-If you embed version, add -ldflags.
 
 ```bash
-$ go build -o mikku -ldflags "-X github.com/p1ass/mikku.mikkuVersion=v0.1.0"  cmd/mikku/main.go
+$ go build -o mikku cmd/mikku/main.go
 ```
 
 ### Tests

@@ -1,0 +1,17 @@
+builds:
+  - main: cmd/mikku/main.go
+    binary: mikku
+    ldflags: -X github.com/p1ass/mikku.mikkuVersion={{.Version}}
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+archives:
+  format_overrides:
+    - goos: windows
+      format: zip
+
+  files:
+    - LICENSE*
