@@ -9,9 +9,9 @@ builds:
     goarch:
       - amd64
 archives:
-  format_overrides:
-    - goos: windows
-      format: zip
+  - format_overrides:
+      - goos: windows
+        format: zip
 
   files:
     - LICENSE*
