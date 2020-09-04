@@ -6,9 +6,10 @@ package mikku
 
 import (
 	context "context"
-	gomock "github.com/golang/mock/gomock"
-	github "github.com/google/go-github/v28/github"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	github "github.com/google/go-github/v32/github"
 )
 
 // MockgitHubRepositoriesClient is a mock of gitHubRepositoriesClient interface

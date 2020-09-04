@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-github/v28/github"
+	"github.com/google/go-github/v32/github"
 )
 
 func TestGitHubClient_createRelease(t *testing.T) {
