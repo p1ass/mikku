@@ -19,9 +19,6 @@ const (
 var (
 	// errReleaseNotFound represents error that the release does not found
 	errReleaseNotFound = errors.New("release not found")
-
-	errFileORRepoNotFound = errors.New("file or repository not found")
-	errContentIsDirectory = errors.New("content is directory, not file")
 )
 
 //go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
@@ -30,9 +27,6 @@ var (
 type gitHubRepositoriesClient interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-
-	GetContents(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
-	UpdateFile(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
 }
 
 // gitHubPullRequestsClient is a interface for calling GitHub API about pull requests
@@ -42,17 +36,11 @@ type gitHubPullRequestsClient interface {
 	Create(ctx context.Context, owner string, repo string, pull *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
 }
 
-type gitHubGitClient interface {
-	GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error)
-	CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error)
-}
-
 // githubClient handles application logic using GitHub API
 type githubClient struct {
 	owner   string
 	repoCli gitHubRepositoriesClient
 	prCli   gitHubPullRequestsClient
-	gitCli  gitHubGitClient
 }
 
 // newGitHubClientUsingEnv returns a pointer of githubClient
@@ -65,15 +53,14 @@ func newGitHubClientUsingEnv(owner, accessToken string) *githubClient {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	return newGitHubClient(owner, client.Repositories, client.PullRequests, client.Git)
+	return newGitHubClient(owner, client.Repositories, client.PullRequests)
 }
 
-func newGitHubClient(owner string, repoCli gitHubRepositoriesClient, prCli gitHubPullRequestsClient, gitCli gitHubGitClient) *githubClient {
+func newGitHubClient(owner string, repoCli gitHubRepositoriesClient, prCli gitHubPullRequestsClient) *githubClient {
 	return &githubClient{
 		owner:   owner,
 		repoCli: repoCli,
 		prCli:   prCli,
-		gitCli:  gitCli,
 	}
 }
 

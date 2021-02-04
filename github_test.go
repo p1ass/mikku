@@ -81,7 +81,7 @@ func TestGitHubClient_createRelease(t *testing.T) {
 			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubClient("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil)
 
 			got, err := s.createRelease(tt.args.repo, tt.args.tagName, tt.args.body)
 			if (err != nil) != tt.wantErr {
@@ -186,7 +186,7 @@ func TestGitHubService_getLatestRelease(t *testing.T) {
 			cli := NewMockgitHubRepositoriesClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubClient("test-owner", cli, nil, nil)
+			s := newGitHubClient("test-owner", cli, nil)
 
 			got, err := s.getLatestRelease(tt.repo)
 			fmt.Printf("%#v\n", got)
@@ -353,7 +353,7 @@ func TestGitHubService_getMergedPRsAfter(t *testing.T) {
 			cli := NewMockgitHubPullRequestsClient(ctrl)
 			cli = tt.injector(cli)
 
-			s := newGitHubClient("test-owner", nil, cli, nil)
+			s := newGitHubClient("test-owner", nil, cli)
 			got, err := s.getMergedPRsAfter(tt.repo, tt.after)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("githubClient.getMergedPRsAfter() error = %v, wantErr %v", err, tt.wantErr)

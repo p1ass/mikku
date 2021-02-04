@@ -51,7 +51,7 @@ func doRelease(c *cli.Context) error {
 func Run(args []string) error {
 	app := &cli.App{
 		Name:  "mikku",
-		Usage: "Bump Semantic Versioning tag, create GitHub release and update Kubernetes manifest file",
+		Usage: "Bump Semantic Versioning tag andcreate GitHub release",
 		Authors: []*cli.Author{
 			{
 				Name:  "p1ass",
