@@ -20,11 +20,6 @@ func TestRun(t *testing.T) {
 			args:    []string{"", "release", "mikku"},
 			wantErr: true,
 		},
-		{
-			name:    "pr: no arguments",
-			args:    []string{"", "pr"},
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -27,34 +27,6 @@ var commandRelease = &cli.Command{
 	Action: doRelease,
 }
 
-var commandPullRequest = &cli.Command{
-	Name:  "pr",
-	Usage: "Create a pull request updating Docker image tag written in Kubernetes manifest file",
-	UsageText: `
-	mikku pr [options...] <repository>
-
-	Create a pull request updating Docker image tag written in Kubernetes manifest file.
-	`,
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "manifest",
-			Aliases: []string{"m"},
-			Usage:   "Repository existing Kubernetes manifest file. It overrides MIKKU_MANIFEST_REPOSITORY environment variable",
-		},
-		&cli.StringFlag{
-			Name:    "path",
-			Aliases: []string{"p"},
-			Usage:   "File path where the target docker image is written. It overrides MIKKU_MANIFEST_FILEPATH environment variable",
-		},
-		&cli.StringFlag{
-			Name:    "image",
-			Aliases: []string{"i"},
-			Usage:   "Docker image name. It overrides MIKKU_DOCKER_IMAGE_NAME environment variable",
-		},
-	},
-	Action: doPullRequest,
-}
-
 func doRelease(c *cli.Context) error {
 	if c.Args().Len() == 0 {
 		_ = cli.ShowCommandHelp(c, "release")
@@ -75,29 +47,6 @@ func doRelease(c *cli.Context) error {
 	return nil
 }
 
-func doPullRequest(c *cli.Context) error {
-	if c.Args().Len() == 0 {
-		_ = cli.ShowCommandHelp(c, "pr")
-		return nil
-	}
-
-	if c.Args().Len() != 1 {
-		return fmt.Errorf("One argument is required: repository")
-	}
-
-	repo := c.Args().Get(0)
-	manifestRepo := c.String("manifest")
-	pathToManifestFile := c.String("path")
-	image := c.String("image")
-
-	if err := PullRequest(repo, manifestRepo, pathToManifestFile, image); err != nil {
-		return fmt.Errorf("Failed to execute pr: %v", err)
-
-	}
-
-	return nil
-}
-
 // Run runs commands depending on the given argument
 func Run(args []string) error {
 	app := &cli.App{
@@ -112,7 +61,6 @@ func Run(args []string) error {
 		Version: mikkuVersion,
 		Commands: []*cli.Command{
 			commandRelease,
-			commandPullRequest,
 		},
 	}
 
