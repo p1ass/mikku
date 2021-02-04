@@ -69,7 +69,7 @@ Note that `mikku` doesn't build and push a docker image, so you have to do it us
 ### Release
 
 ```bash
-$ mikku release sample-repository v0.1.1
+$ mikku release sample-repository v1.0.0
 ```
 
 ![changelog](images/changelog.png)
