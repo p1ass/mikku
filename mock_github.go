@@ -6,10 +6,9 @@ package mikku
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	github "github.com/google/go-github/v32/github"
+	reflect "reflect"
 )
 
 // MockgitHubRepositoriesClient is a mock of gitHubRepositoriesClient interface
@@ -67,39 +66,6 @@ func (mr *MockgitHubRepositoriesClientMockRecorder) GetLatestRelease(ctx, owner,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestRelease", reflect.TypeOf((*MockgitHubRepositoriesClient)(nil).GetLatestRelease), ctx, owner, repo)
 }
 
-// GetContents mocks base method
-func (m *MockgitHubRepositoriesClient) GetContents(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentGetOptions) (*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContents", ctx, owner, repo, path, opt)
-	ret0, _ := ret[0].(*github.RepositoryContent)
-	ret1, _ := ret[1].([]*github.RepositoryContent)
-	ret2, _ := ret[2].(*github.Response)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-// GetContents indicates an expected call of GetContents
-func (mr *MockgitHubRepositoriesClientMockRecorder) GetContents(ctx, owner, repo, path, opt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContents", reflect.TypeOf((*MockgitHubRepositoriesClient)(nil).GetContents), ctx, owner, repo, path, opt)
-}
-
-// UpdateFile mocks base method
-func (m *MockgitHubRepositoriesClient) UpdateFile(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFile", ctx, owner, repo, path, opt)
-	ret0, _ := ret[0].(*github.RepositoryContentResponse)
-	ret1, _ := ret[1].(*github.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// UpdateFile indicates an expected call of UpdateFile
-func (mr *MockgitHubRepositoriesClientMockRecorder) UpdateFile(ctx, owner, repo, path, opt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFile", reflect.TypeOf((*MockgitHubRepositoriesClient)(nil).UpdateFile), ctx, owner, repo, path, opt)
-}
-
 // MockgitHubPullRequestsClient is a mock of gitHubPullRequestsClient interface
 type MockgitHubPullRequestsClient struct {
 	ctrl     *gomock.Controller
@@ -153,59 +119,4 @@ func (m *MockgitHubPullRequestsClient) Create(ctx context.Context, owner, repo s
 func (mr *MockgitHubPullRequestsClientMockRecorder) Create(ctx, owner, repo, pull interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockgitHubPullRequestsClient)(nil).Create), ctx, owner, repo, pull)
-}
-
-// MockgitHubGitClient is a mock of gitHubGitClient interface
-type MockgitHubGitClient struct {
-	ctrl     *gomock.Controller
-	recorder *MockgitHubGitClientMockRecorder
-}
-
-// MockgitHubGitClientMockRecorder is the mock recorder for MockgitHubGitClient
-type MockgitHubGitClientMockRecorder struct {
-	mock *MockgitHubGitClient
-}
-
-// NewMockgitHubGitClient creates a new mock instance
-func NewMockgitHubGitClient(ctrl *gomock.Controller) *MockgitHubGitClient {
-	mock := &MockgitHubGitClient{ctrl: ctrl}
-	mock.recorder = &MockgitHubGitClientMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockgitHubGitClient) EXPECT() *MockgitHubGitClientMockRecorder {
-	return m.recorder
-}
-
-// GetRef mocks base method
-func (m *MockgitHubGitClient) GetRef(ctx context.Context, owner, repo, ref string) (*github.Reference, *github.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRef", ctx, owner, repo, ref)
-	ret0, _ := ret[0].(*github.Reference)
-	ret1, _ := ret[1].(*github.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetRef indicates an expected call of GetRef
-func (mr *MockgitHubGitClientMockRecorder) GetRef(ctx, owner, repo, ref interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRef", reflect.TypeOf((*MockgitHubGitClient)(nil).GetRef), ctx, owner, repo, ref)
-}
-
-// CreateRef mocks base method
-func (m *MockgitHubGitClient) CreateRef(ctx context.Context, owner, repo string, ref *github.Reference) (*github.Reference, *github.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRef", ctx, owner, repo, ref)
-	ret0, _ := ret[0].(*github.Reference)
-	ret1, _ := ret[1].(*github.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// CreateRef indicates an expected call of CreateRef
-func (mr *MockgitHubGitClientMockRecorder) CreateRef(ctx, owner, repo, ref interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRef", reflect.TypeOf((*MockgitHubGitClient)(nil).CreateRef), ctx, owner, repo, ref)
 }

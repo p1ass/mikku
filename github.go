@@ -19,9 +19,6 @@ const (
 var (
 	// errReleaseNotFound represents error that the release does not found
 	errReleaseNotFound = errors.New("release not found")
-
-	errFileORRepoNotFound = errors.New("file or repository not found")
-	errContentIsDirectory = errors.New("content is directory, not file")
 )
 
 //go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
@@ -30,9 +27,6 @@ var (
 type gitHubRepositoriesClient interface {
 	CreateRelease(ctx context.Context, owner, repo string, release *github.RepositoryRelease) (*github.RepositoryRelease, *github.Response, error)
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-
-	GetContents(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
-	UpdateFile(ctx context.Context, owner, repo, path string, opt *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
 }
 
 // gitHubPullRequestsClient is a interface for calling GitHub API about pull requests
@@ -42,17 +36,11 @@ type gitHubPullRequestsClient interface {
 	Create(ctx context.Context, owner string, repo string, pull *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
 }
 
-type gitHubGitClient interface {
-	GetRef(ctx context.Context, owner string, repo string, ref string) (*github.Reference, *github.Response, error)
-	CreateRef(ctx context.Context, owner string, repo string, ref *github.Reference) (*github.Reference, *github.Response, error)
-}
-
 // githubClient handles application logic using GitHub API
 type githubClient struct {
 	owner   string
 	repoCli gitHubRepositoriesClient
 	prCli   gitHubPullRequestsClient
-	gitCli  gitHubGitClient
 }
 
 // newGitHubClientUsingEnv returns a pointer of githubClient
@@ -65,15 +53,14 @@ func newGitHubClientUsingEnv(owner, accessToken string) *githubClient {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	return newGitHubClient(owner, client.Repositories, client.PullRequests, client.Git)
+	return newGitHubClient(owner, client.Repositories, client.PullRequests)
 }
 
-func newGitHubClient(owner string, repoCli gitHubRepositoriesClient, prCli gitHubPullRequestsClient, gitCli gitHubGitClient) *githubClient {
+func newGitHubClient(owner string, repoCli gitHubRepositoriesClient, prCli gitHubPullRequestsClient) *githubClient {
 	return &githubClient{
 		owner:   owner,
 		repoCli: repoCli,
 		prCli:   prCli,
-		gitCli:  gitCli,
 	}
 }
 
@@ -147,84 +134,6 @@ func (s *githubClient) getMergedPRsAfter(repo string, after time.Time) ([]*githu
 	}
 
 	return prList, nil
-}
-
-// getFile fetches the file from GitHub and return content and hash
-func (s *githubClient) getFile(repo, filePath string) (content string, hash string, err error) {
-	ctx := context.Background()
-	file, _, resp, err := s.repoCli.GetContents(ctx, s.owner, repo, filePath, &github.RepositoryContentGetOptions{
-		Ref: baseBranch,
-	})
-	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return "", "", fmt.Errorf("%s: %w", filePath, errFileORRepoNotFound)
-		}
-		return "", "", fmt.Errorf("call getting contents api: %w", err)
-	}
-
-	if file == nil {
-		return "", "", errContentIsDirectory
-	}
-
-	content, err = file.GetContent()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to decode encoded file: %w", err)
-	}
-
-	hash = file.GetSHA()
-	return content, hash, nil
-}
-
-// pushFile pushes the updated file
-func (s *githubClient) pushFile(repo, filePath, branch, commitMessage, commitSHA string, body []byte) error {
-	ctx := context.Background()
-	_, _, err := s.repoCli.UpdateFile(ctx, s.owner, repo, filePath, &github.RepositoryContentFileOptions{
-		Message: github.String(commitMessage),
-		Content: body,
-		SHA:     github.String(commitSHA),
-		Branch:  github.String(branch),
-		Committer: &github.CommitAuthor{
-			Name:  github.String("mikku"),
-			Email: github.String("mikku@p1ass.com"),
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("call updating file api: %w", err)
-	}
-
-	return nil
-}
-
-// createPullRequest creates a pull request
-func (s *githubClient) createPullRequest(repo, branch, title, body string) (*github.PullRequest, error) {
-	ctx := context.Background()
-	pr, _, err := s.prCli.Create(ctx, s.owner, repo, &github.NewPullRequest{
-		Title: github.String(title),
-		Head:  github.String(branch),
-		Base:  github.String(baseBranch),
-		Body:  github.String(body),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("call create pull request api: %w", err)
-	}
-
-	return pr, nil
-}
-
-// createBranch creates new branch
-func (s *githubClient) createBranch(repo, branch string) error {
-	ctx := context.Background()
-	ref, _, err := s.gitCli.GetRef(ctx, s.owner, repo, fmt.Sprintf("heads/%s", baseBranch))
-	if err != nil {
-		return fmt.Errorf("call getting reference api :%w", err)
-	}
-
-	ref.Ref = github.String("refs/heads/" + branch)
-	if _, _, err := s.gitCli.CreateRef(ctx, s.owner, repo, ref); err != nil {
-		return fmt.Errorf("call creating reference api: %w", err)
-	}
-
-	return nil
 }
 
 // extractMergedPRsAfter extract merged PRs after a given time
