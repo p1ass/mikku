@@ -32,7 +32,7 @@ Binaries are available on GitHub releases. [p1ass/mikku/releases](https://github
 ### go get
 
 ```bash
-$ GO111MODULE=off go get github.com/p1ass/mikku/cmd/mikku
+$ go install github.com/p1ass/mikku/cmd/mikku@v1.0.1
 $ mikku --help
 ```
 
